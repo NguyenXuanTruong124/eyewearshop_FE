@@ -1,0 +1,152 @@
+.footer {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  padding-top: 40px;
+  margin-top: 60px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 40px;
+  padding: 0 20px 40px;
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.footer-header .glasses-icon {
+  font-size: 24px;
+}
+
+.footer-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #cc0000;
+  font-weight: 700;
+}
+
+.company-description {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  color: #b0b0b0;
+}
+
+.social-links {
+  display: flex;
+  gap: 12px;
+}
+
+.social-links a {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e0e0e0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.social-links a:hover {
+  background: #cc0000;
+  color: white;
+}
+
+.footer-column h4 {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-column li {
+  margin-bottom: 10px;
+}
+
+.footer-column a {
+  color: #b0b0b0;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.3s ease;
+}
+
+.footer-column a:hover {
+  color: #cc0000;
+}
+
+.contact-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.contact-item span:first-child {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.contact-item p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    padding: 0 16px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 0 16px 24px;
+  }
+
+  .footer {
+    padding-top: 30px;
+    margin-top: 40px;
+  }
+
+  .footer-bottom p {
+    font-size: 12px;
+  }
+}
