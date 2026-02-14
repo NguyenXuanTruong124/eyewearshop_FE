@@ -1,0 +1,162 @@
+/* src/pages/styles/Register.css */
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  background-color: #f8f9fa;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.register-box {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.register-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #cc0000;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.register-header h2 {
+  font-size: 22px;
+  margin-bottom: 5px;
+}
+
+.register-header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.form-group label span {
+  color: #cc0000;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.password-note {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  margin: 15px 0;
+}
+
+.checkbox-group input {
+  margin-top: 3px;
+}
+
+.checkbox-group a {
+  color: #cc0000;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-btn {
+  width: 100%;
+  padding: 12px;
+  background: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.social-divider {
+  text-align: center;
+  position: relative;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #888;
+}
+
+.social-divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: #eee;
+}
+
+.social-divider::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: #eee;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.social-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.login-link {
+  text-align: center;
+  font-size: 14px;
+}
+
+.login-link a {
+  color: #cc0000;
+  font-weight: bold;
+  text-decoration: none;
+}

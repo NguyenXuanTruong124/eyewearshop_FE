@@ -1,14 +1,41 @@
 import React, { useState } from 'react';
-import './Login.css';
+import { useNavigate } from 'react-router-dom';
+import axiosClient from '../API_BE/axiosClient.ts';
+import './styles/Login.css';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt with:', { email, password });
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await axiosClient.post('/auth/login', {
+        email: email,
+        password: password,
+      });
+
+      if (response.data && response.data.accessToken) {
+        // Lưu thông tin vào máy khách
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('userEmail', response.data.email);
+        
+        // Điều hướng và load lại trang để Header cập nhật tên
+        window.location.href = '/'; 
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
+      setErrorMessage(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,6 +50,12 @@ const Login: React.FC = () => {
             <h2>Đăng nhập</h2>
             <p>Chào mừng bạn quay trở lại</p>
           </div>
+
+          {errorMessage && (
+            <div style={{ color: '#cc0000', backgroundColor: '#fff5f5', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', textAlign: 'center', border: '1px solid #ffcccc' }}>
+              {errorMessage}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
@@ -52,7 +85,6 @@ const Login: React.FC = () => {
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? '🙈' : '👁️'}
                 </button>
@@ -60,37 +92,32 @@ const Login: React.FC = () => {
             </div>
 
             <div className="form-footer">
-              <a href="#forgot-password" className="forgot-password">
+              <a
+                href="#forgot-password"
+                aria-disabled="true"
+                onClick={(e) => e.preventDefault()}
+                className="forgot-password"
+              >
                 Quên mật khẩu?
               </a>
             </div>
 
-            <button type="submit" className="login-btn">
-              Đăng nhập
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? 'Đang xác thực...' : 'Đăng nhập'}
             </button>
           </form>
-
-          <div className="social-login">
-            <p>Hoặc đăng nhập với</p>
-            <div className="social-buttons">
-              <button className="social-btn google-btn">
-                <span>📍</span> Google
-              </button>
-              <button className="social-btn facebook-btn">
-                <span>f</span> Facebook
-              </button>
-            </div>
-          </div>
 
           <div className="signup-link">
             <p>
               Chưa có tài khoản?{' '}
-              <a href="#signup">Đăng ký ngay</a>
+              <button type="button" className="link-button" onClick={() => navigate('/register')}>
+                Đăng ký ngay
+              </button>
             </p>
           </div>
 
           <div className="back-home">
-            <a href="/">← Quay lại trang chủ</a>
+            <button type="button" className="link-button" onClick={() => navigate('/')}>← Quay lại trang chủ</button>
           </div>
         </div>
       </div>
