@@ -1,0 +1,114 @@
+/* Layout chính của trang Profile */
+.profile-page {
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  padding: 40px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+/* Sidebar Menu */
+.profile-sidebar {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+  z-index: 10;
+}
+
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 25px;
+  cursor: pointer;
+  color: #555;
+  font-size: 14px;
+  transition: 0.3s;
+  border-left: 4px solid transparent;
+}
+
+.sidebar-menu-item.active {
+  background-color: #fff5f5;
+  color: #cc0000;
+  border-left-color: #cc0000;
+  font-weight: 600;
+}
+
+.sidebar-menu-item:hover {
+  background-color: #fff5f5;
+  color: #cc0000;
+}
+
+/* Nội dung chính bên phải */
+.profile-main-content {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 90px;
+  right: 30px;
+  background: white;
+  min-width: 320px;
+  padding: 18px 25px;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  border-left: 6px solid #cc0000;
+  animation: slideInLeft 0.5s forwards;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 11000;
+  
+  /* Thêm tiền tố -webkit- để hết báo lỗi và chạy tốt trên Safari/Chrome cũ */
+  -webkit-backdrop-filter: blur(5px); 
+  backdrop-filter: blur(5px); 
+}
+
+.confirm-modal {
+  background: white;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 30px;
+  animation: modalBounce 0.4s ease;
+}
+
+.btn-confirm-delete {
+  background: #cc0000;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes slideInLeft { from { transform: translateX(120%); } to { transform: translateX(0); } }
+@keyframes modalBounce { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
