@@ -5,6 +5,7 @@ import "./Profile.css";
 // Import các component đã tách
 import PersonalInfo from "./PersonalInfo";
 import Address_Customer from "./Address_Customer";
+import Eyes_Customer from "./Eyes_Customer"; // Mới thêm vào
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState("info");
@@ -33,7 +34,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="profile-page">
-      {/* Toast Notification dùng chung */}
+      {/* Toast Notification dùng chung cho toàn bộ trang Profile */}
       {showToast && (
         <div className="toast-notification">
           <div className="toast-content">
@@ -47,7 +48,7 @@ const Profile: React.FC = () => {
       )}
 
       <div className="profile-container">
-        {/* Sidebar Menu điều hướng đầy đủ các mục */}
+        {/* Sidebar Menu điều hướng */}
         <aside className="profile-sidebar">
           <div 
             className={`sidebar-menu-item ${activeTab === "info" ? "active" : ""}`} 
@@ -101,18 +102,16 @@ const Profile: React.FC = () => {
             <Address_Customer triggerToast={triggerToast} />
           )}
 
-          {/* Các Tab khác (Bạn có thể tách component tương tự sau này) */}
+          {/* Tab Thông số mắt (Đã kết hợp API và layout mới) */}
+          {activeTab === "eyes" && (
+            <Eyes_Customer triggerToast={triggerToast} />
+          )}
+
+          {/* Các Tab khác */}
           {activeTab === "orders" && (
             <div className="tab-placeholder">
               <h3>Đơn hàng của tôi</h3>
               <p>Danh sách đơn hàng sẽ hiển thị tại đây.</p>
-            </div>
-          )}
-
-          {activeTab === "eyes" && (
-            <div className="tab-placeholder">
-              <h3>Thông số mắt</h3>
-              <p>Thông tin thị lực của bạn sẽ hiển thị tại đây.</p>
             </div>
           )}
 

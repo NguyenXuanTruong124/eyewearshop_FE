@@ -1,115 +1,232 @@
 /* src/pages/styles/ProductDetail.css */
 .product-detail-page {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1400px; /* Tăng giới hạn tối đa để layout thoáng đãng trên màn hình lớn */
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px;
+  box-sizing: border-box;
 }
 
-/* Breadcrumbs */
+/* --- Breadcrumbs --- */
 .breadcrumbs {
-  font-size: 13px;
+  font-size: 14px;
   color: #888;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
-.breadcrumbs span { margin: 0 8px; }
-
-/* Main Section */
+/* --- Main Section Layout --- */
 .product-main {
   display: flex;
-  gap: 40px;
-  margin-bottom: 60px;
+  gap: 60px; /* Khoảng cách rộng giữa ảnh và nội dung giúp trang cân đối hơn */
+  align-items: flex-start;
+  width: 100%;
 }
 
-.product-gallery { flex: 1; }
+/* Gallery chiếm 55% chiều ngang để ảnh sản phẩm kính to và rõ nét */
+.product-gallery {
+  flex: 0 0 55%; 
+}
+
 .main-img {
   width: 100%;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
 }
+
 .thumb-list {
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
+
 .thumb-img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 2px solid #eee;
+  transition: all 0.3s ease;
 }
-.thumb-img.active { border-color: #cc0000; }
 
-.product-order-info { flex: 1; }
-.brand-label { color: #888; font-size: 14px; }
-.product-order-info h1 { font-size: 28px; margin: 10px 0; }
+.thumb-img.active {
+  border-color: #cc0000;
+}
 
-.rating-row { color: #ffc107; display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
-.price-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-.current-price { color: #cc0000; font-size: 24px; font-weight: 700; }
-.old-price { color: #aaa; text-decoration: line-through; }
-.sale-tag { background: #cc0000; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+/* --- Thông tin đặt hàng --- */
+.product-order-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-/* Options */
-.option-group { margin-bottom: 20px; }
-.option-group label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 14px; }
-.color-btns { display: flex; gap: 10px; }
-.color-btn {
-  padding: 6px 15px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
+.brand-label {
+  color: #999;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.product-title {
+  font-size: 36px;
+  margin: 15px 0;
+  font-weight: 700;
+  color: #222;
+}
+
+.price-row {
+  margin: 20px 0 30px 0;
+}
+
+.current-price {
+  color: #cc0000;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+/* --- Options & Variants (Chips hiện đại) --- */
+.option-group {
+  margin-bottom: 30px;
+}
+
+.option-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.variant-selector {
+  display: flex;
+  gap: 12px;
+}
+
+.variant-chip {
+  padding: 12px 25px;
+  border: 1.5px solid #eee;
+  border-radius: 50px;
   background: white;
   cursor: pointer;
-  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
 }
-.color-btn.active { border-color: #cc0000; color: #cc0000; background: #fff5f5; }
+
+.variant-chip:hover {
+  border-color: #cc0000;
+}
+
+.variant-chip.active {
+  background: #cc0000;
+  border-color: #cc0000;
+  color: white;
+  box-shadow: 0 4px 12px rgba(204, 0, 0, 0.25);
+}
+
+/* --- Quantity & Stock --- */
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
 
 .quantity-control {
   display: flex;
   align-items: center;
-  border: 1px solid #ddd;
-  width: fit-content;
-  border-radius: 4px;
+  border: 1.5px solid #eee;
+  border-radius: 8px;
+  height: 48px;
+  background: #fff;
 }
-.quantity-control button { padding: 8px 15px; }
-.quantity-control input { width: 40px; text-align: center; border: none; }
 
-.action-btns { display: flex; gap: 15px; margin: 30px 0; }
+.qty-btn {
+  width: 48px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: #f9f9f9;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: #eee;
+}
+
+.qty-input {
+  width: 60px;
+  text-align: center;
+  border: none;
+  font-weight: 700;
+  font-size: 18px;
+  background: transparent;
+}
+
+.stock-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.stock-badge.in-stock { color: #28a745; }
+.stock-badge.out-of-stock { color: #d32f2f; }
+
+/* --- Action Buttons --- */
+.action-btns {
+  margin: 40px 0;
+}
+
 .add-cart-btn {
-  flex: 1;
+  width: 100%;
+  max-width: 400px; /* Cân đối chiều ngang nút bấm */
   background: #cc0000;
   color: white;
-  padding: 15px;
-  border-radius: 6px;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 700;
   border: none;
   cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
 }
 
-/* Highlights */
-.highlights {
-  background: #fcfcfc;
-  padding: 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #444;
+.add-cart-btn:hover:not(:disabled) {
+  background: #a30000;
+  transform: translateY(-2px);
 }
-.highlights ul { list-style: none; padding: 0; }
-.highlights li { margin-bottom: 8px; }
-.highlights li::before { content: "✓"; color: #2ecc71; margin-right: 10px; font-weight: bold; }
 
-/* Tabs Info */
+.add-cart-btn:disabled {
+  background: #eee;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* --- Highlights Box --- */
+.highlights-box {
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 16px;
+  margin-top: 20px;
+}
+
+.highlights-title { font-weight: 700; margin-bottom: 15px; font-size: 16px; }
+.highlights-list { list-style: none; padding: 0; margin: 0; }
+.highlights-list li { margin-bottom: 12px; display: flex; align-items: center; }
+.check-icon { color: #28a745; margin-right: 12px; font-weight: 900; }
+
+/* --- Tabs Layout --- */
 .info-tabs {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 40px;
+  margin-top: 80px;
   border-top: 1px solid #eee;
-  padding-top: 40px;
+  padding-top: 60px;
 }
-.tab-content h3 { margin-bottom: 20px; font-size: 20px; }
-.tab-content p { line-height: 1.8; color: #555; font-size: 14px; }
 
-.specs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.specs-table td { padding: 12px 0; border-bottom: 1px solid #eee; }
-.specs-table td:first-child { color: #888; width: 40%; }
+.tab-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+}

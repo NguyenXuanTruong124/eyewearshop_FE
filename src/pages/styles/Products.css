@@ -1,145 +1,164 @@
-/* src/pages/styles/Products.css */
+/* Container chính của trang sản phẩm */
 .products-page {
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1600px; /* Mở rộng tối đa để layout không bị dồn cục bộ */
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px;
   display: flex;
-  gap: 30px;
+  gap: 40px; /* Khoảng cách giữa Sidebar và Nội dung chính */
+  box-sizing: border-box;
 }
 
-/* Sidebar Bộ lọc */
+/* Sidebar bộ lọc - Cố định độ rộng để không bị co giãn */
 .sidebar-filter {
-  width: 250px;
-  flex-shrink: 0;
+  flex: 0 0 280px; 
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
 }
 
 .filter-section {
-  margin-bottom: 30px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
+  margin-bottom: 35px;
 }
 
 .filter-section h3 {
   font-size: 16px;
-  margin-bottom: 15px;
   font-weight: 700;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #222;
 }
 
-.filter-list {
-  list-style: none;
-  padding: 0;
-}
-
-.filter-item {
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #555;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-item:hover { color: #cc0000; }
-
-/* Khu vực hiển thị sản phẩm */
+/* Nội dung chính: Lưới sản phẩm */
 .products-content {
-  flex: 1;
+  flex: 1; /* Tự động lấp đầy phần không gian còn lại */
 }
 
 .products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
 }
 
 .products-header h2 {
   font-size: 28px;
-  margin-bottom: 10px;
+  font-weight: 700;
+  margin: 0;
 }
 
+/* Lưới sản phẩm căn đối toàn khung hình */
 .product-grid-main {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 cột như ảnh */
-  gap: 25px;
+  /* Tự động tính toán số cột dựa trên chiều rộng màn hình */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  gap: 30px;
 }
 
-/* Re-use hoặc tinh chỉnh Product Card từ trang Home */
+/* Card sản phẩm */
 .product-card-item {
-  border: 1px solid #eee;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 12px;
   overflow: hidden;
-  transition: 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card-item:hover {
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
 .img-wrapper {
-  position: relative;
-  height: 280px;
+  width: 100%;
+  aspect-ratio: 3/4; /* Giữ tỉ lệ ảnh đồng nhất */
+  background: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .img-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-.sale-label {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #cc0000;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  object-fit: contain; /* Đảm bảo kính không bị méo */
+  padding: 20px;
 }
 
 .info-wrapper {
-  padding: 15px;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .brand-name {
+  color: #999;
   font-size: 12px;
-  color: #888;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .product-name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  margin: 5px 0;
-  height: 40px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.rating {
-  color: #ffc107;
-  font-size: 12px;
-  margin-bottom: 10px;
+  margin: 8px 0;
+  color: #333;
+  min-height: 44px; /* Giữ tiêu đề thẳng hàng */
 }
 
 .price-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   margin-bottom: 15px;
 }
 
-.current-p { color: #cc0000; font-weight: 700; }
-.old-p { color: #aaa; text-decoration: line-through; font-size: 13px; }
+.current-p {
+  color: #cc0000;
+  font-size: 18px;
+  font-weight: 700;
+}
 
-.btn-add {
+/* NÚT XEM CHI TIẾT MỚI: Trải rộng toàn bộ card */
+.product-card-btns {
+  margin-top: auto;
+}
+
+.btn-full-view {
   width: 100%;
-  padding: 10px;
   background: #cc0000;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 600;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-full-view:hover {
+  background: #a30000;
+}
+
+.btn-full-view:active {
+  transform: scale(0.98);
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 1024px) {
+  .products-page {
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .sidebar-filter {
+    flex: none;
+    width: 100%;
+    margin-bottom: 20px;
+  }
 }
