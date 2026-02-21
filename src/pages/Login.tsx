@@ -25,10 +25,11 @@ const Login: React.FC = () => {
       if (response.data && response.data.accessToken) {
         // Lưu thông tin vào máy khách
         localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('userEmail', response.data.email);
-        
-        // Điều hướng và load lại trang để Header cập nhật tên
-        window.location.href = '/'; 
+        if (response.data.refreshToken) localStorage.setItem('refreshToken', response.data.refreshToken);
+        if (response.data.email) localStorage.setItem('userEmail', response.data.email);
+
+        // Điều hướng SPA để giữ trạng thái ứng dụng
+        navigate('/');
       }
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';

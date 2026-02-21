@@ -8,6 +8,7 @@ const axiosClient = axios.create({
   },
 });
 
+
 // Tự động gắn Token vào header nếu đã đăng nhập
 axiosClient.interceptors.request.use(
   (config) => {
@@ -59,13 +60,13 @@ axiosClient.interceptors.response.use(
           // Nếu Refresh Token cũng hết hạn (lỗi 403/401 khi gọi API refresh)
           console.error("Phiên đăng nhập đã hết hạn hoàn toàn.");
           localStorage.clear();
-          window.location.href = '/login';
+          if (window.location.pathname !== '/login') window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       } else {
-        // Không có refreshToken thì đẩy về login
+        // Không có refreshToken thì đẩy về login (chỉ redirect nếu chưa ở /login)
         localStorage.clear();
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') window.location.href = '/login';
       }
     }
 
