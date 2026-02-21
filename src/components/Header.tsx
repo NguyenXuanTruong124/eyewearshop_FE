@@ -45,10 +45,16 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     // 1. Kiểm tra thông tin người dùng
-    const email = localStorage.getItem('userEmail');
-    if (email) {
-      setUserName(email.split('@')[0]);
-    }
+    const updateUserName = () => {
+      const email = localStorage.getItem('userEmail');
+      if (email) {
+        setUserName(email.split('@')[0]);
+      } else {
+        setUserName(null);
+      }
+    };
+
+    updateUserName();
 
     // 2. Lấy số lượng giỏ hàng lần đầu khi load trang
     fetchCartCount();
@@ -59,10 +65,17 @@ const Header: React.FC = () => {
       fetchCartCount();
     };
 
+    // 4. Lắng nghe sự kiện thay đổi auth
+    const handleAuthChange = () => {
+      updateUserName();
+    };
+
     window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('authChanged', handleAuthChange);
     
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('authChanged', handleAuthChange);
     };
   }, [fetchCartCount]);
 
@@ -81,6 +94,8 @@ const Header: React.FC = () => {
       localStorage.clear();
       setUserName(null);
       setCartCount(0);
+      // Phát sự kiện để cập nhật header
+      window.dispatchEvent(new Event('authChanged'));
       window.location.href = '/login';
     }
   };

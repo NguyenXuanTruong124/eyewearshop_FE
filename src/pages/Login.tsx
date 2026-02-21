@@ -28,6 +28,9 @@ const Login: React.FC = () => {
         if (response.data.refreshToken) localStorage.setItem('refreshToken', response.data.refreshToken);
         if (response.data.email) localStorage.setItem('userEmail', response.data.email);
 
+        // Phát sự kiện để cập nhật header
+        window.dispatchEvent(new Event('authChanged'));
+
         // Điều hướng SPA để giữ trạng thái ứng dụng
         navigate('/');
       }
