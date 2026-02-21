@@ -26,25 +26,25 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <>
-      {/* Overlay mờ */}
-      <div className="modal-overlay" onClick={onCancel}></div>
-      
-      {/* Modal */}
-      <div className="modal-container">
-        <div className="modal-content">
-          <h2 className="modal-title">{title}</h2>
-          <p className="modal-message">{message}</p>
-          
-          <div className="modal-actions">
-            <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
-              {cancelText}
-            </button>
-            <button 
-              className={`modal-btn ${isDangerous ? 'modal-btn-danger' : 'modal-btn-confirm'}`}
-              onClick={onConfirm}
-            >
-              {confirmText}
-            </button>
+      {/* Overlay mờ chứa Modal */}
+      <div className="modal-overlay" onClick={onCancel}>
+        {/* Modal */}
+        <div className="modal-container">
+          <div className="modal-content">
+            <h2 className="modal-title">{title}</h2>
+            <p className="modal-message">{message}</p>
+            
+            <div className="modal-actions">
+              <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
+                {cancelText}
+              </button>
+              <button 
+                className={`modal-btn ${isDangerous ? 'modal-btn-danger' : 'modal-btn-confirm'}`}
+                onClick={onConfirm}
+              >
+                {confirmText}
+              </button>
+            </div>
           </div>
         </div>
       </div>
