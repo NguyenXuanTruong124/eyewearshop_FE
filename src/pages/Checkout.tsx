@@ -10,7 +10,7 @@ const Checkout: React.FC = () => {
   // 1. MẶC ĐỊNH LUÔN BẮT ĐẦU TỪ BƯỚC 1 VÀ LUÔN CẦN TOA THUỐC
   const [step, setStep] = useState<number>(1); 
   const [loading, setLoading] = useState(false);
-  const [needsPrescription, setNeedsPrescription] = useState(true); // Luôn hiện bước độ kính
+  const [needsPrescription] = useState(); // Luôn hiện bước độ kính
   const [cartData, setCartData] = useState<any>(null);
 
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -30,7 +30,7 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     const initData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        // const token = localStorage.getItem('accessToken');
         
         // 1. Lấy giỏ hàng
         const cartRes = await axiosClient.get('/cart');
@@ -40,9 +40,9 @@ const Checkout: React.FC = () => {
         
         setCartData(currentCart);
 
-        // 🔥 ĐÃ BỎ QUA API REQUIREMENTS - LUÔN SET LÀ TRUE
-        setNeedsPrescription(true);
-        setStep(1);
+        // // 🔥 ĐÃ BỎ QUA API REQUIREMENTS - LUÔN SET LÀ TRUE
+        // setNeedsPrescription(true);
+        // setStep(1);
 
         // 2. Tải dữ liệu Profile, Địa chỉ và Đơn kính
         const [addrRes, presRes, profileRes] = await Promise.all([
