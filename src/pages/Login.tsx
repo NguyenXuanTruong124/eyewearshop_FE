@@ -24,7 +24,6 @@ const Login: React.FC = () => {
       });
 
       if (response.data?.accessToken) {
-
         // 🔥 2. LƯU TOKEN
         localStorage.setItem('accessToken', response.data.accessToken);
 
@@ -32,14 +31,22 @@ const Login: React.FC = () => {
           localStorage.setItem('refreshToken', response.data.refreshToken);
         }
 
-        // 🔥 3. LẤY PROFILE → ROLE
+        // 🔥 3. LẤY PROFILE → LẤY FULLNAME VÀ ROLE
         const me = await axiosClient.get('/auth/me');
 
         const role = me.data?.role;
         const userEmail = me.data?.email;
+        
+        // Kiểm tra tất cả các trường có thể chứa tên từ database
+        const fullName = me.data?.fullname || me.data?.full_name || me.data?.fullName;
 
         if (role) localStorage.setItem('userRole', role);
         if (userEmail) localStorage.setItem('userEmail', userEmail);
+        
+        // 🔥 CHỈ LƯU VÀO fullName NẾU DỮ LIỆU TỒN TẠI
+        if (fullName) {
+          localStorage.setItem('fullName', fullName);
+        }
 
         // Phát sự kiện để Header cập nhật
         window.dispatchEvent(new Event('authChanged'));
@@ -50,9 +57,9 @@ const Login: React.FC = () => {
         } 
         else if (role === 'Manager') {
           navigate('/manager');
-        }else if (role === 'Operations') {
+        } else if (role === 'Operations') {
           navigate('/operations');
-        }else if (role === 'SalesSupport') {
+        } else if (role === 'SalesSupport') {
           navigate('/sales-support');
         } else {
           navigate('/'); // Customer
@@ -83,18 +90,16 @@ const Login: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div
-              style={{
-                color: '#cc0000',
-                backgroundColor: '#fff5f5',
-                padding: '10px',
-                borderRadius: '4px',
-                marginBottom: '15px',
-                fontSize: '14px',
-                textAlign: 'center',
-                border: '1px solid #ffcccc',
-              }}
-            >
+            <div style={{
+              color: '#cc0000',
+              backgroundColor: '#fff5f5',
+              padding: '10px',
+              borderRadius: '4px',
+              marginBottom: '15px',
+              fontSize: '14px',
+              textAlign: 'center',
+              border: '1px solid #ffcccc',
+            }}>
               {errorMessage}
             </div>
           )}
@@ -133,16 +138,6 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <div className="form-footer">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="forgot-password"
-              >
-                Quên mật khẩu?
-              </a>
-            </div>
-
             <button type="submit" className="login-btn" disabled={loading}>
               {loading ? 'Đang xác thực...' : 'Đăng nhập'}
             </button>
@@ -159,16 +154,6 @@ const Login: React.FC = () => {
                 Đăng ký ngay
               </button>
             </p>
-          </div>
-
-          <div className="back-home">
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => navigate('/')}
-            >
-              ← Quay lại trang chủ
-            </button>
           </div>
         </div>
       </div>

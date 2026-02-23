@@ -9,18 +9,23 @@ import RevenueManager from "./RevenueManager";
 
 const ManagerPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("users");
-  const [staffName, setStaffName] = useState<string>("Nhân viên");
+  const [staffName, setStaffName] = useState<string>("Đang tải...");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
-    // Tự động cập nhật tên nhân viên khi vào trang
+    // 🔥 ÉP BUỘC lấy tên đầy đủ từ localStorage
     const savedName = localStorage.getItem('fullName');
     const email = localStorage.getItem('userEmail');
+    
     if (savedName) {
-      setStaffName(savedName);
+      // Ưu tiên hiển thị fullname thực tế từ database (ví dụ: nguyen quang)
+      setStaffName(savedName); 
     } else if (email) {
+      // Nếu chưa có fullname, hiển thị phần trước @ của email
       setStaffName(email.split('@')[0]);
+    } else {
+      setStaffName("Nhân viên");
     }
   }, []);
 
@@ -39,7 +44,7 @@ const ManagerPage: React.FC = () => {
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
     } finally {
-      // Xóa sạch dữ liệu để tránh lỗi 401 Unauthorized khi quay lại trang
+      // Xóa sạch để đảm bảo lần login tới sẽ cập nhật lại fullname mới
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = "/login";
@@ -48,7 +53,6 @@ const ManagerPage: React.FC = () => {
 
   return (
     <div className="manager-page">
-      {/* Thông báo Toast dùng chung cho các tác vụ quản lý */}
       {showToast && (
         <div className="toast-notification">
           <div className="toast-content">
@@ -62,12 +66,11 @@ const ManagerPage: React.FC = () => {
       )}
 
       <div className="manager-container">
-        {/* Sidebar Menu chỉ chứa 3 mục yêu cầu */}
         <aside className="manager-sidebar">
           <div className="manager-profile-brand">
-           
             <div className="staff-info">
-              <span className="name">Nhân Viên: {staffName}</span>
+              {/* Hiển thị fullname lấy từ cơ sở dữ liệu */}
+              <span className="name" style={{fontWeight: 'bold'}}>Nhân Viên: {staffName}</span>
               <p className="role">Quản lý hệ thống</p>
             </div>
           </div>
@@ -100,7 +103,6 @@ const ManagerPage: React.FC = () => {
           </div>
         </aside>
 
-        {/* Nội dung chính hiển thị dựa trên tab đang chọn */}
         <main className="manager-main-content">
           <header className="manager-content-header">
             <h2 className="current-tab-title">
@@ -108,15 +110,11 @@ const ManagerPage: React.FC = () => {
               {activeTab === "products" && "Quản lý sản phẩm"}
               {activeTab === "revenue" && "Thống kê doanh thu"}
             </h2>
-            
           </header>
 
           <section className="tab-content-area">
-            {/* Render các file nội dung lẻ */}
             {activeTab === "users" && <UserManager triggerToast={triggerToast} />}
-            
             {activeTab === "products" && <ProductManager triggerToast={triggerToast} />}
-            
             {activeTab === "revenue" && <RevenueManager triggerToast={triggerToast} />}
           </section>
         </main>
