@@ -6,19 +6,18 @@ import './styles/Checkout.css';
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  // State step mặc định để null để chờ kết quả từ API Requirements
-  const [step, setStep] = useState<number | null>(null);
+  
+  // 1. MẶC ĐỊNH LUÔN BẮT ĐẦU TỪ BƯỚC 1 VÀ LUÔN CẦN TOA THUỐC
+  const [step, setStep] = useState<number>(1); 
   const [loading, setLoading] = useState(false);
-  const [needsPrescription, setNeedsPrescription] = useState(false);
+  const [needsPrescription, setNeedsPrescription] = useState(true); // Luôn hiện bước độ kính
   const [cartData, setCartData] = useState<any>(null);
 
-  // Dữ liệu từ API
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [savedPrescriptions, setSavedPrescriptions] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<number | null>(null);
 
-  // Form States
   const [prescription, setPrescription] = useState({
     od_sph: '', od_cyl: '', od_axis: '', od_add: '',
     os_sph: '', os_cyl: '', os_axis: '', os_add: '', pd: ''
@@ -31,66 +30,21 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     const initData = async () => {
       try {
-        // 0. CHECK: User có login chưa?
         const token = localStorage.getItem('accessToken');
-        console.log('🔐 AccessToken có tồn tại?', !!token);
-        console.log('🔐 Token:', token ? token.substring(0, 50) + '...' : 'KHÔNG CÓ');
         
-        // 1. PHẢI lấy giỏ hàng TRƯỚC để biết có sản phẩm gì trong đó
+        // 1. Lấy giỏ hàng
         const cartRes = await axiosClient.get('/cart');
         let currentCart = cartRes?.data && cartRes.data.items && cartRes.data.items.length > 0 
           ? cartRes.data 
           : JSON.parse(localStorage.getItem('localCart') || '{"items":[],"summary":{"subTotal":0,"itemCount":0}}');
         
-        console.log('🛒 Current Cart Data:', currentCart);
-        console.log('📦 Số lượng items:', currentCart.items?.length || 0);
-        
-        // LOG CHI TIẾT TỪNG ITEM
-        if (currentCart.items && currentCart.items.length > 0) {
-          currentCart.items.forEach((item: any, idx: number) => {
-            console.log(`📌 Item ${idx + 1}:`, {
-              variantId: item.variantId,
-              productName: item.variant?.product?.productName,
-              quantity: item.quantity,
-              type: item.variant?.product?.type,
-            });
-            console.log(`📋 Full Product JSON Item ${idx + 1}:`, JSON.stringify(item.variant?.product, null, 2));
-          });
-        }
-        
         setCartData(currentCart);
 
-        // 2. Kiểm tra yêu cầu toa thuốc từ server
-        let requiresValue = false;
-        
-        // Thử POST gửi cart items để xem Backend có nhận không
-        try {
-          const reqRes = await axiosClient.get('/checkout/requirements', {
-            params: { items: currentCart.items || [] }
-          });
-          console.log('✅ GET /checkout/requirements thành công:', reqRes.data);
-          requiresValue = reqRes.data.requiresPrescription;
-        } catch (postErr: any) {
-          console.warn('⚠️ GET không được (405?), thử GET:', postErr.response?.status);
-          // Fallback: dùng GET
-          const reqRes = await axiosClient.get('/checkout/requirements');
-          console.log('📋 GET /checkout/requirements response:', reqRes.data);
-          requiresValue = reqRes.data.requiresPrescription;
-        }
-        
-        console.log('🔍 Final requiresPrescription:', requiresValue);
-        setNeedsPrescription(requiresValue);
-        
-        // LOGIC PHÂN NHÁNH BƯỚC
-        if (requiresValue) {
-          console.log('✅ Có Tròng kính -> Bắt đầu từ Bước 1 (Độ kính)');
-          setStep(1); // Có Tròng kính -> Bắt đầu từ Bước 1 (Độ kính)
-        } else {
-          console.log('⏭️ Chỉ có Gọng/Phụ kiện -> Bắt đầu từ Bước 2 (Thông tin)');
-          setStep(2); // Chỉ có Gọng/Phụ kiện -> Bắt đầu từ Bước 2 (Thông tin)
-        }
+        // 🔥 ĐÃ BỎ QUA API REQUIREMENTS - LUÔN SET LÀ TRUE
+        setNeedsPrescription(true);
+        setStep(1);
 
-        // 3. Tải đa dữ liệu Profile, Địa chỉ và Đơn kính
+        // 2. Tải dữ liệu Profile, Địa chỉ và Đơn kính
         const [addrRes, presRes, profileRes] = await Promise.all([
           axiosClient.get('/account/addresses'),
           axiosClient.get('/prescriptions'),
@@ -100,7 +54,6 @@ const Checkout: React.FC = () => {
         setSavedAddresses(addrRes.data);
         setSavedPrescriptions(presRes.data);
 
-        // Tự động điền Email và Tên từ Profile ngay khi load trang
         if (profileRes.data) {
           setShippingInfo(prev => ({
             ...prev,
@@ -116,7 +69,6 @@ const Checkout: React.FC = () => {
     initData();
   }, [navigate]);
 
-  // HÀM TỰ ĐIỀN THÔNG SỐ ĐỘ KÍNH
   const handleSelectPrescription = (id: number) => {
     setSelectedPrescriptionId(id);
     const p = savedPrescriptions.find(item => item.prescriptionId === id);
@@ -126,11 +78,10 @@ const Checkout: React.FC = () => {
         os_sph: p.osSph || p.leftSphere || '', os_cyl: p.osCyl || p.leftCylinder || '', os_axis: p.osAxis || p.leftAxis || '', os_add: p.osAdd || p.leftAdd || '',
         pd: p.pd || p.rightPD || p.leftPD || ''
       });
-      toast.success(`Đã áp dụng: ${p.prescribedBy || 'Thông số mắt'}`);
+      toast.success(`Đã áp dụng thông số mắt`);
     }
   };
 
-  // HÀM TỰ ĐIỀN ĐỊA CHỈ GIAO HÀNG
   const handleSelectAddress = (id: number) => {
     setSelectedAddressId(id);
     const a = savedAddresses.find(item => item.addressId === id);
@@ -171,35 +122,26 @@ const Checkout: React.FC = () => {
     }
   };
 
-  if (!cartData || step === null) return null;
+  if (!cartData) return null;
 
   return (
     <div className="checkout-page">
       <div className="checkout-container">
-        {/* PROGRESS BAR ĐỘNG */}
+        
+        {/* PROGRESS BAR - LUÔN HIỆN 3 BƯỚC CỐ ĐỊNH */}
         <div className="checkout-stepper-new">
-          {needsPrescription && (
-            <>
-              <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Độ kính</p></div>
-              <div className="line"></div>
-            </>
-          )}
-          <div className={`step ${step === 2 ? 'active' : ''}`}>
-            <span>{needsPrescription ? 2 : 1}</span>
-            <p>Thông tin</p>
-          </div>
+          <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Độ kính</p></div>
           <div className="line"></div>
-          <div className={`step ${step === 3 ? 'active' : ''}`}>
-            <span>{needsPrescription ? 3 : 2}</span>
-            <p>Thanh toán</p>
-          </div>
+          <div className={`step ${step === 2 ? 'active' : ''}`}><span>2</span><p>Thông tin</p></div>
+          <div className="line"></div>
+          <div className={`step ${step === 3 ? 'active' : ''}`}><span>3</span><p>Thanh toán</p></div>
         </div>
 
         <div className="checkout-content-grid">
           <main className="checkout-main">
             
             {/* BƯỚC 1: ĐỘ KÍNH */}
-            {step === 1 && needsPrescription && (
+            {step === 1 && (
               <div className="card-section">
                 <h3 className="card-title">👓 Thông số độ kính</h3>
                 <div className="address-select-box highlight">
@@ -275,16 +217,8 @@ const Checkout: React.FC = () => {
                   </div>
                 </div>
                 <div className="actions">
-                  {needsPrescription ? (
-                    <>
-                      <button className="btn-back" onClick={() => setStep(1)}>Quay lại</button>
-                      <button className="btn-next" onClick={() => setStep(3)}>Tiếp tục</button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="btn-next" onClick={() => setStep(3)}>Tiếp tục</button>
-                    </>
-                  )}
+                  <button className="btn-back" onClick={() => setStep(1)}>Quay lại</button>
+                  <button className="btn-next" onClick={() => setStep(3)}>Tiếp tục</button>
                 </div>
               </div>
             )}
@@ -301,14 +235,13 @@ const Checkout: React.FC = () => {
                   ))}
                 </div>
                 <div className="actions">
-                  <button className="btn-back" onClick={() => setStep(needsPrescription ? 2 : 2)}>Quay lại</button>
+                  <button className="btn-back" onClick={() => setStep(2)}>Quay lại</button>
                   <button className="btn-order" onClick={handleFinalOrder} disabled={loading}>{loading ? "Đang xử lý..." : "Đặt hàng ngay"}</button>
                 </div>
               </div>
             )}
           </main>
 
-          {/* SIDEBAR TÓM TẮT */}
           <aside className="checkout-sidebar-new">
             <h3 className="sidebar-title">Đơn hàng của bạn</h3>
             <div className="order-items">
