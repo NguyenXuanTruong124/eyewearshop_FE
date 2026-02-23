@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axiosClient from '../API_BE/axiosClient';
-import toast from 'react-hot-toast'; // Import Toast
+import toast from 'react-hot-toast'; 
 import './styles/ProductDetail.css';
 
 const ProductDetail: React.FC = () => {
@@ -57,15 +57,11 @@ const ProductDetail: React.FC = () => {
       if (response.status >= 200 && response.status < 300) {
         toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, { id: loadToast }); 
 
-        // Kiểm tra ngay giỏ hàng từ server để đồng bộ
         let cartResp: any = null;
         try {
           cartResp = await axiosClient.get('/cart');
-        } catch (err) {
-          // Lỗi ngầm không cần báo toast ở đây
-        }
+        } catch (err) {}
 
-        // Nếu server trả về rỗng thì dùng fallback localStorage
         if (!cartResp || !cartResp.data || !cartResp.data.items || cartResp.data.items.length === 0) {
           const localRaw = localStorage.getItem('localCart');
           const localCart = localRaw ? JSON.parse(localRaw) : { items: [], summary: { subTotal: 0, itemCount: 0 } };
@@ -103,8 +99,8 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="loading-state" style={{textAlign: 'center', padding: '100px'}}>Đang tải chi tiết sản phẩm...</div>;
-  if (!product) return <div className="error-state" style={{textAlign: 'center', padding: '100px'}}>Sản phẩm không tồn tại hoặc đã bị xóa.</div>;
+  if (loading) return <div className="loading-state">Đang tải chi tiết sản phẩm...</div>;
+  if (!product) return <div className="error-state">Sản phẩm không tồn tại hoặc đã bị xóa.</div>;
 
   const availableStock = (selectedVariant?.stockQuantity || 0) - (selectedVariant?.preOrderQuantity || 0);
   const isAvailable = availableStock > 0;
@@ -117,66 +113,87 @@ const ProductDetail: React.FC = () => {
 
       <div className="product-main">
         <div className="product-gallery">
-          <img src={mainImg} alt={product.productName} className="main-img" onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400?text=EyewearHut'} />
+          <img 
+            src={mainImg} 
+            alt={product.productName} 
+            className="main-img" 
+            onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400?text=EyewearHut'} 
+          />
           <div className="thumb-list">
             {product.images?.map((img: any) => (
-              <img key={img.imageId} src={img.url} className={`thumb-img ${mainImg === img.url ? 'active' : ''}`} 
-                   onClick={() => setMainImg(img.url)} alt="thumbnail" />
+              <img 
+                key={img.imageId} 
+                src={img.url} 
+                className={`thumb-img ${mainImg === img.url ? 'active' : ''}`} 
+                onClick={() => setMainImg(img.url)} 
+                alt="thumbnail" 
+              />
             ))}
           </div>
         </div>
 
         <div className="product-order-info">
-          <p className="brand-label" style={{textTransform: 'uppercase', color: '#888', letterSpacing: '1px'}}>{product.brandName}</p>
-          <h1 className="product-title" style={{fontSize: '32px', margin: '10px 0', fontWeight: 700}}>{product.productName}</h1>
+          <p className="brand-label">{product.brandName}</p>
+          <h1 className="product-title">{product.productName}</h1>
           
-          <div className="price-row" style={{margin: '20px 0'}}>
-            <span className="current-price" style={{fontSize: '28px', color: '#cc0000', fontWeight: 800}}>
+          <div className="price-row">
+            <span className="current-price">
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(selectedVariant?.price || product.basePrice)}
             </span>
           </div>
 
-          <div className="option-group" style={{marginBottom: '25px'}}>
-            <label className="option-label" style={{fontWeight: 600, display: 'block', marginBottom: '10px'}}>Màu sắc:</label>
-            <div className="variant-selector" style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+          <div className="option-group">
+            <label className="option-label">Màu sắc:</label>
+            <div className="variant-selector">
               {product.variants?.map((v: any) => (
-                <button key={v.variantId} className={`variant-chip ${selectedVariant?.variantId === v.variantId ? 'active' : ''}`}
-                        onClick={() => { setSelectedVariant(v); setQuantity(1); }}
-                        style={{
-                          padding: '8px 20px',
-                          border: selectedVariant?.variantId === v.variantId ? '2px solid #cc0000' : '1px solid #ddd',
-                          borderRadius: '25px',
-                          background: selectedVariant?.variantId === v.variantId ? '#fff5f5' : 'white',
-                          cursor: 'pointer'
-                        }}>{v.color}</button>
+                <button 
+                  key={v.variantId} 
+                  className={`variant-chip ${selectedVariant?.variantId === v.variantId ? 'active' : ''}`}
+                  onClick={() => { setSelectedVariant(v); setQuantity(1); }}
+                >
+                  {v.color}
+                </button>
               ))}
             </div>
           </div>
 
-          <div className="option-group" style={{marginBottom: '35px'}}>
-            <label className="option-label" style={{fontWeight: 600, display: 'block', marginBottom: '10px'}}>Số lượng:</label>
-            <div className="qty-row" style={{display: 'flex', alignItems: 'center', gap: '20px'}}>
-              <div className="quantity-control" style={{display: 'flex', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden'}}>
-                <button type="button" className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={!isAvailable} style={{padding: '10px 15px', background: '#f9f9f9', border: 'none'}}>-</button>
-                <input className="qty-input" value={isAvailable ? quantity : 0} readOnly style={{width: '50px', textAlign: 'center', border: 'none', fontWeight: 700}} />
-                <button type="button" className="qty-btn" onClick={() => setQuantity(quantity + 1)} disabled={!isAvailable || quantity >= availableStock} style={{padding: '10px 15px', background: '#f9f9f9', border: 'none'}}>+</button>
+          <div className="option-group">
+            <label className="option-label">Số lượng:</label>
+            <div className="qty-row">
+              <div className="quantity-control">
+                <button 
+                  type="button" 
+                  className="qty-btn" 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                  disabled={!isAvailable}
+                >-</button>
+                <input className="qty-input" value={isAvailable ? quantity : 0} readOnly />
+                <button 
+                  type="button" 
+                  className="qty-btn" 
+                  onClick={() => setQuantity(quantity + 1)} 
+                  disabled={!isAvailable || quantity >= availableStock}
+                >+</button>
               </div>
-              <span className={`stock-badge ${isAvailable ? 'in-stock' : 'out-of-stock'}`} style={{fontSize: '14px', color: isAvailable ? '#28a745' : '#d32f2f', fontWeight: 600}}>
+              <span className={`stock-badge ${isAvailable ? 'in-stock' : 'out-of-stock'}`}>
                 {isAvailable ? `Còn hàng (Sẵn có: ${availableStock})` : 'Hết hàng'}
               </span>
             </div>
           </div>
 
           <div className="action-btns">
-            <button className="add-cart-btn" onClick={handleAddToCart} disabled={!isAvailable}
-                    style={{ width: '100%', maxWidth: '400px', background: isAvailable ? '#cc0000' : '#ccc', color: 'white', padding: '18px', borderRadius: '12px', fontSize: '18px', fontWeight: 700, border: 'none', cursor: isAvailable ? 'pointer' : 'not-allowed' }}>
+            <button 
+              className="add-cart-btn" 
+              onClick={handleAddToCart} 
+              disabled={!isAvailable}
+            >
               🛒 Thêm vào giỏ hàng
             </button>
           </div>
           
-          <div className="product-description" style={{marginTop: '40px', borderTop: '1px solid #eee', paddingTop: '20px'}}>
-            <h3 style={{fontSize: '18px', marginBottom: '15px'}}>Mô tả sản phẩm</h3>
-            <p style={{lineHeight: '1.6', color: '#666'}}>{product.description || "Chưa có mô tả cho sản phẩm này."}</p>
+          <div className="product-description">
+            <h3 className="description-title">Mô tả sản phẩm</h3>
+            <p className="description-text">{product.description || "Chưa có mô tả cho sản phẩm này."}</p>
           </div>
         </div>
       </div>

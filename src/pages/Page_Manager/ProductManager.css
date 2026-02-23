@@ -1,0 +1,103 @@
+/* Container chính của Modal */
+.product-modal {
+  max-width: 500px !important; /* Thu gọn chiều rộng để tập trung */
+  padding: 30px !important;
+  border-radius: 24px !important; /* Bo góc mềm mại hơn */
+  background: #ffffff;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 24px;
+}
+
+/* Tối ưu hóa các nhóm nhập liệu (Form Groups) */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568; /* Màu xám đậm chuyên nghiệp */
+}
+
+/* Tối ưu Input và Textarea */
+.form-group input, 
+.form-group textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px; /* Bo góc hiện đại */
+  font-size: 15px;
+  color: #2d3748;
+  background-color: #fcfdfe;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+  border-color: #4b0082;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(75, 0, 130, 0.05);
+  outline: none;
+}
+
+/* Placeholder tinh tế */
+.form-group input::placeholder, 
+.form-group textarea::placeholder {
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+/* Footer chứa nút bấm */
+.modal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Nút Hủy bỏ */
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 10px 15px;
+}
+
+/* Nút Xác nhận cập nhật màu xanh đậm/tím */
+.btn-submit-form {
+  background: #1a202c; /* Màu đen xanh sang trọng */
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s active;
+}
+
+.btn-submit-form:hover {
+  background: #2d3748;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-submit-form:active {
+  transform: scale(0.98);
+}
+
+/* Phần Biến thể (Variants) ẩn đi khi Update theo yêu cầu của bạn */
+.variant-section {
+  display: none; /* Chỉ hiện khi cần quản lý màu sắc/kho nâng cao */
+}

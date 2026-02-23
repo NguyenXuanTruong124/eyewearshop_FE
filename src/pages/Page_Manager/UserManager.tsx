@@ -105,7 +105,7 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
     <div className="manager-content-wrapper">
       <div className="manager-content-header">
         <div className="header-text">
-          <h2 className="current-tab-title">Quản lý người dùng</h2>
+          
           <p className="sub-label">Điều hành đội ngũ và khách hàng hệ thống</p>
         </div>
         {/* Cập nhật nút bấm với class nổi bật mới */}
