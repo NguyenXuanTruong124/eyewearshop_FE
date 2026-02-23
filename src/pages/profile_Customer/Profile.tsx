@@ -28,7 +28,7 @@ const Profile: React.FC = () => {
       console.error("Lỗi đăng xuất:", error);
     } finally {
       localStorage.clear();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   };
 

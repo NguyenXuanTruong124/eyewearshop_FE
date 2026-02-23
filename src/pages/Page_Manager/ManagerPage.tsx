@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axiosClient from "../../API_BE/axiosClient";
 import "./ManagerPage.css";
 
-// Import 3 file nội dung lẻ tương ứng
+// Import các component quản lý
 import UserManager from "./UserManager";
 import ProductManager from "./ProductManager";
 import RevenueManager from "./RevenueManager";
@@ -14,15 +14,12 @@ const ManagerPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
-    // 🔥 ÉP BUỘC lấy tên đầy đủ từ localStorage
     const savedName = localStorage.getItem('fullName');
     const email = localStorage.getItem('userEmail');
     
     if (savedName) {
-      // Ưu tiên hiển thị fullname thực tế từ database (ví dụ: nguyen quang)
       setStaffName(savedName); 
     } else if (email) {
-      // Nếu chưa có fullname, hiển thị phần trước @ của email
       setStaffName(email.split('@')[0]);
     } else {
       setStaffName("Nhân viên");
@@ -44,13 +41,11 @@ const ManagerPage: React.FC = () => {
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
     } finally {
-      // Xóa sạch để đảm bảo lần login tới sẽ cập nhật lại fullname mới
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   };
-
   return (
     <div className="manager-page">
       {showToast && (
@@ -67,39 +62,48 @@ const ManagerPage: React.FC = () => {
 
       <div className="manager-container">
         <aside className="manager-sidebar">
-          <div className="manager-profile-brand">
-            <div className="staff-info">
-              {/* Hiển thị fullname lấy từ cơ sở dữ liệu */}
-              <span className="name" style={{fontWeight: 'bold'}}>Nhân Viên: {staffName}</span>
-              <p className="role">Quản lý hệ thống</p>
+          <div className="sidebar-header-box">
+            <div className="avatar-circle">
+              {staffName.charAt(0).toUpperCase()}
+            </div>
+            <div className="staff-details">
+              <span className="staff-label">Nhân Viên</span>
+              <span className="staff-name">{staffName}</span>
+              <p className="staff-role">Quản lý hệ thống</p>
             </div>
           </div>
           
-          <div 
-            className={`sidebar-menu-item ${activeTab === "users" ? "active" : ""}`} 
-            onClick={() => setActiveTab("users")}
-          >
-            <span>👥</span> Quản lý nhân sự
-          </div>
+          <nav className="sidebar-nav-menu">
+            <div 
+              className={`nav-item ${activeTab === "users" ? "active" : ""}`} 
+              onClick={() => setActiveTab("users")}
+            >
+              <span className="nav-icon">👥</span>
+              <span className="nav-text">Quản lý nhân sự</span>
+            </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "products" ? "active" : ""}`} 
-            onClick={() => setActiveTab("products")}
-          >
-            <span>👓</span> Quản lý sản phẩm
-          </div>
+            <div 
+              className={`nav-item ${activeTab === "products" ? "active" : ""}`} 
+              onClick={() => setActiveTab("products")}
+            >
+              <span className="nav-icon">👓</span>
+              <span className="nav-text">Quản lý sản phẩm</span>
+            </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "revenue" ? "active" : ""}`} 
-            onClick={() => setActiveTab("revenue")}
-          >
-            <span>💰</span> Quản lý doanh thu
-          </div>
+            <div 
+              className={`nav-item ${activeTab === "revenue" ? "active" : ""}`} 
+              onClick={() => setActiveTab("revenue")}
+            >
+              <span className="nav-icon">💰</span>
+              <span className="nav-text">Quản lý doanh thu</span>
+            </div>
+          </nav>
 
-          <div className="sidebar-divider"></div>
-
-          <div className="sidebar-menu-item logout-item-btn" onClick={handleLogout}>
-            <span>🚪</span> Đăng xuất
+          <div className="sidebar-footer-area">
+            <div className="nav-item logout-btn" onClick={handleLogout}>
+              <span className="nav-icon">🚪</span>
+              <span className="nav-text">Đăng xuất</span>
+            </div>
           </div>
         </aside>
 

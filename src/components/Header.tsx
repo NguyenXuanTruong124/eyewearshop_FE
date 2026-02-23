@@ -83,7 +83,7 @@ const Header: React.FC = () => {
       localStorage.clear();
 
       // 🔥 Redirect + reload để reset app state
-      window.location.replace('/login');
+      window.location.replace('/');
     }
   };
 
