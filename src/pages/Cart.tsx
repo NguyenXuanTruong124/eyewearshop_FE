@@ -18,21 +18,26 @@ const Cart: React.FC = () => {
     try {
       const raw = localStorage.getItem('localCart');
       return raw ? JSON.parse(raw) : { items: [], summary: { subTotal: 0, itemCount: 0 } };
-    } catch (e) { return { items: [], summary: { subTotal: 0, itemCount: 0 } }; }
+    } catch (e) { 
+      return { items: [], summary: { subTotal: 0, itemCount: 0 } }; 
+    }
   };
 
   const saveLocalCart = (data: any) => {
     localStorage.setItem('localCart', JSON.stringify(data));
   };
-  const token = localStorage.getItem('accessToken');
 
-if (!token) {
-  setCartData(getLocalCart());
-  setUsingLocal(true);
-  setLoading(false);
-  return;
-}
   const fetchCart = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    
+    // Nếu không có token, lấy dữ liệu từ local và dừng tại đây
+    if (!token) {
+      setCartData(getLocalCart());
+      setUsingLocal(true);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await axiosClient.get('/cart');
@@ -42,11 +47,15 @@ if (!token) {
         saveLocalCart(response.data);
         setUsingLocal(false);
       } else {
-        setCartData(getLocalCart());
-        setUsingLocal(true);
+        // Nếu server trả về giỏ hàng rỗng, kiểm tra xem local có gì không
+        const local = getLocalCart();
+        setCartData(local);
+        setUsingLocal(local.items.length > 0);
       }
     } catch (error) {
+      // Lỗi kết nối hoặc 401: fallback về local
       setCartData(getLocalCart());
+      setUsingLocal(true);
     } finally {
       setLoading(false);
     }
@@ -78,21 +87,8 @@ if (!token) {
       await fetchCart();
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (err) {
-      const local = getLocalCart();
-      const it = local.items.find((i: any) => i.variantId === variantId);
-      if (it) it.quantity = newQty;
-      local.summary.itemCount = local.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
-      local.summary.subTotal = local.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
-      saveLocalCart(local);
-      setCartData(local);
-      setUsingLocal(true);
       toast.error("Lỗi cập nhật số lượng.");
     }
-  };
-
-  const handleRemoveItem = async (variantId: number) => {
-    setRemoveConfirmVariantId(variantId);
-    setShowRemoveConfirm(true);
   };
 
   const confirmRemoveItem = async () => {
@@ -111,26 +107,19 @@ if (!token) {
       return;
     }
 
-    const deletePromise = axiosClient.delete(`/cart/items/${variantId}`);
-    toast.promise(deletePromise, {
-      loading: 'Đang xóa...',
-      success: 'Đã xóa sản phẩm thành công!',
-      error: 'Lỗi khi xóa sản phẩm.',
-    });
-
     try {
-      await deletePromise;
+      await axiosClient.delete(`/cart/items/${variantId}`);
       await fetchCart();
       window.dispatchEvent(new Event('cartUpdated'));
+      toast.success('Đã xóa sản phẩm thành công!');
     } catch (err) {
-      const local = getLocalCart();
-      local.items = local.items.filter((i: any) => i.variantId !== variantId);
-      local.summary.itemCount = local.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
-      local.summary.subTotal = local.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
-      saveLocalCart(local);
-      setCartData(local);
-      setUsingLocal(true);
+      toast.error('Lỗi khi xóa sản phẩm.');
     }
+  };
+
+  const handleRemoveItem = (variantId: number) => {
+    setRemoveConfirmVariantId(variantId);
+    setShowRemoveConfirm(true);
   };
 
   const handleClearCart = () => {
@@ -139,24 +128,24 @@ if (!token) {
 
   const confirmClearCart = async () => {
     setShowClearConfirm(false);
-    const clearPromise = axiosClient.delete('/cart');
-    toast.promise(clearPromise, {
-      loading: 'Đang xóa toàn bộ giỏ hàng...',
-      success: 'Giỏ hàng đã được làm sạch!',
-      error: 'Không thể xóa giỏ hàng trên server, đã xóa local thay thế.'
-    });
+    
+    if (usingLocal) {
+        const empty = { items: [], summary: { subTotal: 0, itemCount: 0 } };
+        saveLocalCart(empty);
+        setCartData(empty);
+        window.dispatchEvent(new Event('cartUpdated'));
+        return;
+    }
 
     try {
-      await clearPromise;
+      await axiosClient.delete('/cart');
       const empty = { items: [], summary: { subTotal: 0, itemCount: 0 } };
       saveLocalCart(empty);
       setCartData(empty);
       window.dispatchEvent(new Event('cartUpdated'));
+      toast.success('Giỏ hàng đã được làm sạch!');
     } catch (err) {
-      const empty = { items: [], summary: { subTotal: 0, itemCount: 0 } };
-      saveLocalCart(empty);
-      setCartData(empty);
-      window.dispatchEvent(new Event('cartUpdated'));
+      toast.error('Không thể xóa giỏ hàng.');
     }
   };
 
@@ -173,32 +162,35 @@ if (!token) {
       return;
     }
 
-    const promises = local.items.map((it: any) => axiosClient.post('/cart/items', { variantId: it.variantId, quantity: it.quantity }));
-    const all = Promise.all(promises);
-
-    toast.promise(all, {
-      loading: 'Đang đồng bộ giỏ hàng...',
-      success: 'Đồng bộ giỏ hàng thành công!',
-      error: 'Đồng bộ thất bại. Vui lòng thử lại.'
-    });
-
+    const loadToast = toast.loading('Đang đồng bộ giỏ hàng...');
     try {
-      await all;
+      const promises = local.items.map((it: any) => 
+        axiosClient.post('/cart/items', { variantId: it.variantId, quantity: it.quantity })
+      );
+      await Promise.all(promises);
       await fetchCart();
       saveLocalCart({ items: [], summary: { subTotal: 0, itemCount: 0 } });
       window.dispatchEvent(new Event('cartUpdated'));
+      toast.success('Đồng bộ thành công!', { id: loadToast });
     } catch (err) {
-      console.error('Sync local cart failed', err);
+      toast.error('Đồng bộ thất bại.', { id: loadToast });
     }
   };
 
   if (loading) return <div className="cart-loading-state">Đang tải dữ liệu giỏ hàng...</div>;
 
+  // 🔥 GIAO DIỆN KHI GIỎ HÀNG TRỐNG (Tránh trang trắng)
   if (!cartData || !cartData.items || cartData.items.length === 0) {
     return (
-      <div className="cart-empty-state">
+      <div className="cart-empty-state" style={{ textAlign: 'center', padding: '100px 20px' }}>
+        <div style={{ fontSize: '64px', marginBottom: '20px' }}>🛒</div>
         <h2>Giỏ hàng của bạn đang trống</h2>
-        <Link to="/products" className="btn-shop-now">Mua sắm ngay</Link>
+        <p style={{ color: '#666', marginBottom: '30px' }}>Hãy chọn cho mình những mẫu kính yêu thích nhé!</p>
+        <Link to="/products" className="btn-shop-now" style={{ 
+          background: '#cc0000', color: 'white', padding: '12px 30px', borderRadius: '8px', textDecoration: 'none', display: 'inline-block' 
+        }}>
+          Tiếp tục mua sắm
+        </Link>
       </div>
     );
   }
@@ -258,7 +250,7 @@ if (!token) {
             <button className="btn-checkout" onClick={() => navigate('/checkout')}>
               Tiến hành thanh toán
             </button>
-            <Link to="/products" className="btn-continue-shopping">
+            <Link to="/products" className="btn-continue-shopping" style={{ display: 'block', textAlign: 'center', marginTop: '15px' }}>
               Tiếp tục mua sắm
             </Link>
           </aside>
