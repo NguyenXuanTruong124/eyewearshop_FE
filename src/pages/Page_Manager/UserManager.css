@@ -1,0 +1,230 @@
+/* Layout & Grid */
+.manager-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.manager-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* NÚT THÊM TÀI KHOẢN MỚI */
+.btn-add-account {
+  background: linear-gradient(135deg, #8a2be2 0%, #4b0082 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.btn-add-account:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+}
+
+.btn-add-account span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Thẻ thống kê */
+.stats-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card .label { color: #888; font-size: 14px; font-weight: 500; }
+.stat-card .value { font-size: 32px; font-weight: 800; }
+.value.purple { color: #8a2be2; }
+.value.blue { color: #007bff; }
+.value.red { color: #dc3545; }
+.value.green { color: #28a745; }
+
+/* Navigation & Tabs */
+.sub-tab-nav {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.sub-tab-nav button {
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+  transition: 0.3s;
+}
+
+.sub-tab-nav button.active {
+  color: #8a2be2;
+  border-bottom: 3px solid #8a2be2;
+  font-weight: 700;
+}
+
+/* Bảng dữ liệu */
+.data-table-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.manager-custom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.manager-custom-table th {
+  text-align: left;
+  padding: 16px;
+  color: #aaa;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.manager-custom-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f9f9f9;
+  color: #333;
+}
+
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-small {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f0e6ff;
+  color: #7b2cbf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* TRẠNG THÁI BADGE */
+.status-tag {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-tag.active { background: #e6fffa; color: #38b2ac; }
+.status-tag.inactive { background: #fff5f5; color: #e53e3e; }
+
+/* MODAL CHI TIẾT & CẬP NHẬT */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px; /* Tăng nhẹ độ rộng để chứa email/dob */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.form-group label { font-weight: 700; font-size: 13px; color: #4a5568; }
+
+.form-group input, .form-group select {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #8a2be2;
+  outline: none;
+}
+
+/* CHẾ ĐỘ CHỈ XEM (READ-ONLY) */
+.input-readonly {
+  background-color: #f7fafc !important;
+  color: #718096 !important;
+  cursor: not-allowed;
+  border: 1px dashed #cbd5e0 !important;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-cancel {
+  background: #edf2f7;
+  color: #4a5568;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-confirm {
+  background: #8a2be2;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-confirm:hover { opacity: 0.9; }

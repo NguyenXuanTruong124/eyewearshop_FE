@@ -1,7 +1,7 @@
 // src/components/Header.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../API_BE/axiosClient.ts'; 
+import axiosClient from '../API_BE/axiosClient';
 import './styles/Header.css';
 
 const Header: React.FC = () => {
@@ -9,94 +9,81 @@ const Header: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState<number>(0);
 
-  // Hàm lấy số lượng sản phẩm từ API giỏ hàng
   const fetchCartCount = useCallback(async () => {
     try {
-      // Thử lấy từ server trước
-      let used = 0;
-      try {
-        const response = await axiosClient.get('/cart');
-        if (response?.data && response.data.summary) {
-          used = response.data.summary.itemCount || 0;
-        }
-      } catch (err) {
-        console.warn('Header: Không lấy được cart từ server, sẽ kiểm tra localCart', err);
+      const token = localStorage.getItem('accessToken');
+
+      // ❗ CHƯA LOGIN → dùng local cart
+      if (!token) {
+        const raw = localStorage.getItem('localCart');
+
+        if (raw) {
+          const local = JSON.parse(raw);
+          setCartCount(local.summary?.itemCount || 0);
+        } else setCartCount(0);
+
+        return;
       }
 
-      // Nếu server không có item, kiểm tra localStorage fallback (khách hoặc lúc server trả rỗng)
-      if (!used) {
-        try {
-          const raw = localStorage.getItem('localCart');
-          if (raw) {
-            const local = JSON.parse(raw);
-            used = (local.summary && local.summary.itemCount) ? local.summary.itemCount : (local.items ? local.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0) : 0);
-          }
-        } catch (e) {
-          console.warn('Header: lỗi đọc localCart', e);
+      // ✅ ĐÃ LOGIN → gọi server
+      const response = await axiosClient.get('/cart');
+
+      let count = response?.data?.summary?.itemCount || 0;
+
+      // fallback local nếu server rỗng
+      if (!count) {
+        const raw = localStorage.getItem('localCart');
+        if (raw) {
+          const local = JSON.parse(raw);
+          count = local.summary?.itemCount || 0;
         }
       }
 
-      setCartCount(used);
+      setCartCount(count);
     } catch (error) {
-      console.error("Lỗi lấy số lượng giỏ hàng:", error);
+      console.error('Lỗi lấy số lượng giỏ hàng:', error);
       setCartCount(0);
     }
   }, []);
 
   useEffect(() => {
-    // 1. Kiểm tra thông tin người dùng
     const updateUserName = () => {
       const email = localStorage.getItem('userEmail');
-      if (email) {
-        setUserName(email.split('@')[0]);
-      } else {
-        setUserName(null);
-      }
+      if (email) setUserName(email.split('@')[0]);
+      else setUserName(null);
     };
 
     updateUserName();
-
-    // 2. Lấy số lượng giỏ hàng lần đầu khi load trang
     fetchCartCount();
 
-    // 3. Lắng nghe sự kiện cập nhật giỏ hàng từ các component khác
-    const handleCartUpdate = () => {
-      console.log("Header: Nhận tín hiệu cập nhật số lượng giỏ hàng");
-      fetchCartCount();
-    };
-
-    // 4. Lắng nghe sự kiện thay đổi auth
-    const handleAuthChange = () => {
-      updateUserName();
-    };
+    const handleCartUpdate = () => fetchCartCount();
+    const handleAuthChange = () => updateUserName();
 
     window.addEventListener('cartUpdated', handleCartUpdate);
     window.addEventListener('authChanged', handleAuthChange);
-    
+
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('authChanged', handleAuthChange);
     };
   }, [fetchCartCount]);
 
-  // Hàm xử lý đăng xuất
+  // ⭐ LOGOUT CHUẨN GIỐNG PROFILE
   const handleLogout = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
+
       if (refreshToken) {
-        await axiosClient.post('/auth/logout', {
-          refreshToken: refreshToken
-        });
+        await axiosClient.post('/auth/logout', { refreshToken });
       }
     } catch (error) {
-      console.error("Lỗi khi gọi API đăng xuất:", error);
+      console.error('Lỗi đăng xuất:', error);
     } finally {
+      // 🔥 Giống Profile — xoá toàn bộ
       localStorage.clear();
-      setUserName(null);
-      setCartCount(0);
-      // Phát sự kiện để cập nhật header
-      window.dispatchEvent(new Event('authChanged'));
-      window.location.href = '/login';
+
+      // 🔥 Redirect + reload để reset app state
+      window.location.replace('/login');
     }
   };
 
@@ -118,38 +105,55 @@ const Header: React.FC = () => {
 
         <div className="header-icons">
           <button className="icon-btn">🔍</button>
-          
+
           {userName ? (
             <div className="user-profile-section">
-              <div className="user-badge-red" onClick={() => navigate('/profile')}>
+              <div
+                className="user-badge-red"
+                onClick={() => navigate('/profile')}
+              >
                 <span className="avatar-icon">👤</span>
                 <span className="user-name-text">{userName}</span>
               </div>
-              
-              <button className="logout-dropdown-btn" onClick={handleLogout}>
+
+              <button
+                className="logout-dropdown-btn"
+                onClick={handleLogout}
+              >
                 Đăng xuất
               </button>
             </div>
           ) : (
-            <button onClick={() => navigate('/login')} className="icon-btn">👤</button>
+            <button
+              onClick={() => navigate('/login')}
+              className="icon-btn"
+            >
+              👤
+            </button>
           )}
 
-          <button className="icon-btn" onClick={() => navigate('/cart')} style={{ position: 'relative' }}>
+          <button
+            className="icon-btn"
+            onClick={() => navigate('/cart')}
+            style={{ position: 'relative' }}
+          >
             🛒
             {cartCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-8px',
-                backgroundColor: '#cc0000',
-                color: 'white',
-                borderRadius: '50%',
-                padding: '2px 6px',
-                fontSize: '10px',
-                fontWeight: 'bold',
-                minWidth: '18px',
-                textAlign: 'center'
-              }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-8px',
+                  backgroundColor: '#cc0000',
+                  color: 'white',
+                  borderRadius: '50%',
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  minWidth: '18px',
+                  textAlign: 'center',
+                }}
+              >
                 {cartCount}
               </span>
             )}

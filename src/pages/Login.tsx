@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../API_BE/axiosClient.ts';
+import axiosClient from '../API_BE/axiosClient';
 import './styles/Login.css';
 
 const Login: React.FC = () => {
@@ -17,25 +17,52 @@ const Login: React.FC = () => {
     setErrorMessage('');
 
     try {
+      // 🔥 1. LOGIN
       const response = await axiosClient.post('/auth/login', {
-        email: email,
-        password: password,
+        email,
+        password,
       });
 
-      if (response.data && response.data.accessToken) {
-        // Lưu thông tin vào máy khách
-        localStorage.setItem('accessToken', response.data.accessToken);
-        if (response.data.refreshToken) localStorage.setItem('refreshToken', response.data.refreshToken);
-        if (response.data.email) localStorage.setItem('userEmail', response.data.email);
+      if (response.data?.accessToken) {
 
-        // Phát sự kiện để cập nhật header
+        // 🔥 2. LƯU TOKEN
+        localStorage.setItem('accessToken', response.data.accessToken);
+
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
+
+        // 🔥 3. LẤY PROFILE → ROLE
+        const me = await axiosClient.get('/auth/me');
+
+        const role = me.data?.role;
+        const userEmail = me.data?.email;
+
+        if (role) localStorage.setItem('userRole', role);
+        if (userEmail) localStorage.setItem('userEmail', userEmail);
+
+        // Phát sự kiện để Header cập nhật
         window.dispatchEvent(new Event('authChanged'));
 
-        // Điều hướng SPA để giữ trạng thái ứng dụng
-        navigate('/');
+        // 🔥 4. REDIRECT THEO ROLE
+        if (role === 'Admin') {
+          navigate('/admin');
+        } 
+        else if (role === 'Manager') {
+          navigate('/manager');
+        }else if (role === 'Operations') {
+          navigate('/operations');
+        }else if (role === 'SalesSupport') {
+          navigate('/sales-support');
+        } else {
+          navigate('/'); // Customer
+        }
       }
+
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
+      const msg =
+        error.response?.data?.message ||
+        'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
       setErrorMessage(msg);
     } finally {
       setLoading(false);
@@ -56,7 +83,18 @@ const Login: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div style={{ color: '#cc0000', backgroundColor: '#fff5f5', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', textAlign: 'center', border: '1px solid #ffcccc' }}>
+            <div
+              style={{
+                color: '#cc0000',
+                backgroundColor: '#fff5f5',
+                padding: '10px',
+                borderRadius: '4px',
+                marginBottom: '15px',
+                fontSize: '14px',
+                textAlign: 'center',
+                border: '1px solid #ffcccc',
+              }}
+            >
               {errorMessage}
             </div>
           )}
@@ -97,8 +135,7 @@ const Login: React.FC = () => {
 
             <div className="form-footer">
               <a
-                href="#forgot-password"
-                aria-disabled="true"
+                href="#"
                 onClick={(e) => e.preventDefault()}
                 className="forgot-password"
               >
@@ -114,14 +151,24 @@ const Login: React.FC = () => {
           <div className="signup-link">
             <p>
               Chưa có tài khoản?{' '}
-              <button type="button" className="link-button" onClick={() => navigate('/register')}>
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => navigate('/register')}
+              >
                 Đăng ký ngay
               </button>
             </p>
           </div>
 
           <div className="back-home">
-            <button type="button" className="link-button" onClick={() => navigate('/')}>← Quay lại trang chủ</button>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => navigate('/')}
+            >
+              ← Quay lại trang chủ
+            </button>
           </div>
         </div>
       </div>

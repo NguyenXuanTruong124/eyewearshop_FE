@@ -1,0 +1,151 @@
+/* Tổng thể khung trang Manager */
+.manager-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* Nền xám nhạt để nổi bật các card trắng */
+  font-family: 'Inter', sans-serif;
+}
+
+.manager-container {
+  display: flex;
+  width: 100%;
+}
+
+/* SIDEBAR: Màu tím gradient theo thiết kế */
+.manager-sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #8a2be2 0%, #4b0082 100%);
+  color: white;
+  padding: 25px 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed; /* Cố định sidebar bên trái */
+  height: 100vh;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.sidebar-menu-item {
+  padding: 12px 25px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-menu-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-left: 4px solid #fff;
+  font-weight: 600;
+}
+
+/* MAIN CONTENT: Khu vực hiển thị nội dung bên phải */
+.manager-main-content {
+  flex: 1;
+  margin-left: 280px; /* Chừa chỗ cho sidebar cố định */
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header nội dung */
+.manager-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.current-tab-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+/* STATS CARDS: Lưới 4 thẻ thống kê cân đối */
+.stats-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: transform 0.3s;
+  border: 1px solid #edf2f7;
+}
+
+.stat-card:hover { transform: translateY(-5px); }
+
+.stat-card .label { color: #636e72; font-size: 14px; font-weight: 500; }
+.stat-card .value { 
+  font-size: 32px; 
+  font-weight: 800; 
+  margin-top: 8px;
+  display: block;
+}
+
+/* Màu sắc giá trị theo thiết kế */
+.value.purple { color: #8a2be2; }
+.value.red { color: #ff4757; }
+.value.green { color: #2ed573; }
+.value.blue { color: #1e90ff; }
+
+/* DATA TABLE: Cân đối và sạch sẽ */
+.data-table-container {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.manager-custom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.manager-custom-table th {
+  text-align: left;
+  padding: 15px;
+  color: #b2bec3;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #f1f2f6;
+}
+
+.manager-custom-table td {
+  padding: 20px 15px;
+  border-bottom: 1px solid #f1f2f6;
+  color: #2d3436;
+  font-size: 15px;
+}
+
+/* Badge & Avatar */
+.badge-role {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-role.sales { background: #fff0f0; color: #ff4757; }
+
+.avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  background: #a29bfe;
+}

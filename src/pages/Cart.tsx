@@ -24,7 +24,14 @@ const Cart: React.FC = () => {
   const saveLocalCart = (data: any) => {
     localStorage.setItem('localCart', JSON.stringify(data));
   };
+  const token = localStorage.getItem('accessToken');
 
+if (!token) {
+  setCartData(getLocalCart());
+  setUsingLocal(true);
+  setLoading(false);
+  return;
+}
   const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
