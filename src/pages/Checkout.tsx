@@ -7,10 +7,10 @@ import './styles/Checkout.css';
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   
-  // 1. MẶC ĐỊNH LUÔN BẮT ĐẦU TỪ BƯỚC 1 VÀ LUÔN CẦN TOA THUỐC
-  const [step, setStep] = useState<number>(1); 
+  // Trạng thái khởi tạo ban đầu để null để tránh nhảy giao diện khi đang load
+  const [step, setStep] = useState<number | null>(null); 
   const [loading, setLoading] = useState(false);
-  const [needsPrescription, setNeedsPrescription] = useState(true); // Luôn hiện bước độ kính
+  const [needsPrescription, setNeedsPrescription] = useState(false); 
   const [cartData, setCartData] = useState<any>(null);
 
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -27,6 +27,41 @@ const Checkout: React.FC = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('COD');
 
+  // 🔥 HÀM KIỂM TRA LOGIC VỚI LOG CHI TIẾT
+  const checkRequirementsLocally = (items: any[]) => {
+    console.group('🔍 [Checkout Log] Bắt đầu quét điều kiện đơn kính');
+    
+    let hasFrame = false;
+    let hasRxLens = false;
+
+    items.forEach((item, index) => {
+      const pName = item.variant?.product?.productName;
+      const pType = item.variant?.product?.productType; // Lấy từ cột productType trong Swagger
+
+      console.log(`📌 Sản phẩm #${index + 1}: ${pName}`);
+      console.log(`   - Loại (productType): ${pType}`);
+
+      if (pType === 'FRAME') {
+        hasFrame = true;
+        console.log(`   ✅ Đã tìm thấy Gọng kính (FRAME)`);
+      }
+      if (pType === 'RX_LENS') {
+        hasRxLens = true;
+        console.log(`   ✅ Đã tìm thấy Tròng kính (RX_LENS)`);
+      }
+    });
+
+    const isRequired = hasFrame && hasRxLens;
+    
+    console.log('--- Kết luận ---');
+    console.log(`🔸 Có Gọng (FRAME): ${hasFrame}`);
+    console.log(`🔸 Có Tròng (RX_LENS): ${hasRxLens}`);
+    console.log(`🚀 Cần nhập toa kính (needsPrescription): ${isRequired}`);
+    console.groupEnd();
+
+    return isRequired;
+  };
+
   useEffect(() => {
     const initData = async () => {
       try {
@@ -40,8 +75,11 @@ const Checkout: React.FC = () => {
         
         setCartData(currentCart);
 
-        // 🔥 ĐÃ BỎ QUA API REQUIREMENTS - LUÔN SET LÀ TRUE
-        setNeedsPrescription(true);
+        // 🔥 KIỂM TRA LOGIC COMBO THAY THẾ CHO API REQUIREMENTS
+        const isRequired = checkRequirementsLocally(currentCart.items || []);
+        setNeedsPrescription(isRequired);
+        
+        // Luôn khởi tạo ở bước đầu tiên hiển thị thực tế (số 1)
         setStep(1);
 
         // 2. Tải dữ liệu Profile, Địa chỉ và Đơn kính
@@ -122,26 +160,38 @@ const Checkout: React.FC = () => {
     }
   };
 
-  if (!cartData) return null;
+  if (!cartData || step === null) return null;
 
   return (
     <div className="checkout-page">
       <div className="checkout-container">
         
-        {/* PROGRESS BAR - LUÔN HIỆN 3 BƯỚC CỐ ĐỊNH */}
+        {/* PROGRESS BAR - ĐÃ FIX LOGIC SÁNG BƯỚC THEO NHU CẦU THỰC TẾ */}
         <div className="checkout-stepper-new">
-          <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Độ kính</p></div>
-          <div className="line"></div>
-          <div className={`step ${step === 2 ? 'active' : ''}`}><span>2</span><p>Thông tin</p></div>
-          <div className="line"></div>
-          <div className={`step ${step === 3 ? 'active' : ''}`}><span>3</span><p>Thanh toán</p></div>
+          {needsPrescription ? (
+            // TRƯỜNG HỢP 3 BƯỚC (CÓ ĐỘ KÍNH)
+            <>
+              <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Độ kính</p></div>
+              <div className="line"></div>
+              <div className={`step ${step === 2 ? 'active' : ''}`}><span>2</span><p>Thông tin</p></div>
+              <div className="line"></div>
+              <div className={`step ${step === 3 ? 'active' : ''}`}><span>3</span><p>Thanh toán</p></div>
+            </>
+          ) : (
+            // TRƯỜNG HỢP 2 BƯỚC (KHÔNG CẦN ĐỘ KÍNH)
+            <>
+              <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Thông tin</p></div>
+              <div className="line"></div>
+              <div className={`step ${step === 2 ? 'active' : ''}`}><span>2</span><p>Thanh toán</p></div>
+            </>
+          )}
         </div>
 
         <div className="checkout-content-grid">
           <main className="checkout-main">
             
-            {/* BƯỚC 1: ĐỘ KÍNH */}
-            {step === 1 && (
+            {/* BƯỚC 1: ĐỘ KÍNH (Chỉ hiện nếu needsPrescription = true) */}
+            {step === 1 && needsPrescription && (
               <div className="card-section">
                 <h3 className="card-title">👓 Thông số độ kính</h3>
                 <div className="address-select-box highlight">
@@ -185,8 +235,8 @@ const Checkout: React.FC = () => {
               </div>
             )}
 
-            {/* BƯỚC 2: THÔNG TIN GIAO HÀNG */}
-            {step === 2 && (
+            {/* BƯỚC GIAO HÀNG (Step 1 nếu không toa, Step 2 nếu có toa) */}
+            {((step === 1 && !needsPrescription) || (step === 2 && needsPrescription)) && (
               <div className="card-section">
                 <h3 className="card-title">📍 Thông tin giao hàng</h3>
                 <div className="address-select-box highlight">
@@ -217,14 +267,14 @@ const Checkout: React.FC = () => {
                   </div>
                 </div>
                 <div className="actions">
-                  <button className="btn-back" onClick={() => setStep(1)}>Quay lại</button>
-                  <button className="btn-next" onClick={() => setStep(3)}>Tiếp tục</button>
+                  {needsPrescription && <button className="btn-back" onClick={() => setStep(1)}>Quay lại</button>}
+                  <button className="btn-next" onClick={() => (needsPrescription ? setStep(3) : setStep(2))}>Tiếp tục</button>
                 </div>
               </div>
             )}
 
-            {/* BƯỚC 3: THANH TOÁN */}
-            {step === 3 && (
+            {/* BƯỚC THANH TOÁN (Step 2 nếu không toa, Step 3 nếu có toa) */}
+            {((step === 2 && !needsPrescription) || (step === 3 && needsPrescription)) && (
               <div className="card-section">
                 <h3 className="card-title">💳 Phương thức thanh toán</h3>
                 <div className="payment-list">
@@ -235,7 +285,7 @@ const Checkout: React.FC = () => {
                   ))}
                 </div>
                 <div className="actions">
-                  <button className="btn-back" onClick={() => setStep(2)}>Quay lại</button>
+                  <button className="btn-back" onClick={() => (needsPrescription ? setStep(2) : setStep(1))}>Quay lại</button>
                   <button className="btn-order" onClick={handleFinalOrder} disabled={loading}>{loading ? "Đang xử lý..." : "Đặt hàng ngay"}</button>
                 </div>
               </div>

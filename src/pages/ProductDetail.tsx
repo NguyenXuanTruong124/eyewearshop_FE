@@ -39,7 +39,7 @@ const ProductDetail: React.FC = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!selectedVariant) {
+    if (!selectedVariant || !product) {
       toast.error("Vui lòng chọn màu sắc sản phẩm!");
       return;
     }
@@ -52,16 +52,22 @@ const ProductDetail: React.FC = () => {
         quantity: quantity
       };
 
+      // 1. Gửi lên Server Azure
       const response = await axiosClient.post('/cart/items', payload); 
 
       if (response.status >= 200 && response.status < 300) {
         toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, { id: loadToast }); 
 
+        // 2. Cố gắng lấy giỏ hàng mới nhất từ Server để đồng bộ Session
         let cartResp: any = null;
         try {
           cartResp = await axiosClient.get('/cart');
-        } catch (err) {}
+        } catch (err) {
+          console.warn("⚠️ Không thể lấy giỏ hàng từ Server, sử dụng Local dự phòng.");
+        }
 
+        // 3. CẬP NHẬT LOCAL STORAGE (Bản sao bảo hiểm)
+        // 🔥 Đảm bảo lưu đúng cấu trúc variant.product.productType
         if (!cartResp || !cartResp.data || !cartResp.data.items || cartResp.data.items.length === 0) {
           const localRaw = localStorage.getItem('localCart');
           const localCart = localRaw ? JSON.parse(localRaw) : { items: [], summary: { subTotal: 0, itemCount: 0 } };
@@ -73,8 +79,10 @@ const ProductDetail: React.FC = () => {
               price: selectedVariant.price,
               color: selectedVariant.color,
               product: {
-                primaryImageUrl: product.images?.[0]?.url || '',
-                productName: product.productName
+                productId: product.productId,
+                productName: product.productName,
+                productType: product.productType, // 🔥 THÊM DÒNG NÀY ĐỂ FIX LỖI UNDEFINED TẠI CHECKOUT
+                primaryImageUrl: product.images?.[0]?.url || ''
               }
             }
           };
@@ -86,16 +94,23 @@ const ProductDetail: React.FC = () => {
             localCart.items.push(newItem);
           }
 
+          // Tính toán lại summary cho Local
           localCart.summary.itemCount = localCart.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
           localCart.summary.subTotal = localCart.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
 
           localStorage.setItem('localCart', JSON.stringify(localCart));
+          console.log('📦 [ProductDetail] Đã lưu vào Local với ProductType:', product.productType);
+        } else {
+          // Nếu server trả về data chuẩn, ghi đè Local bằng data của server luôn
+          localStorage.setItem('localCart', JSON.stringify(cartResp.data));
         }
 
+        // Thông báo cho Badge/Header cập nhật
         window.dispatchEvent(new Event('cartUpdated'));
       }
     } catch (error: any) {
-      toast.error("Vui lòng đăng nhập để mua hàng!", { id: loadToast });
+      console.error("❌ Lỗi thêm giỏ hàng:", error);
+      toast.error("Hệ thống bận, vui lòng thử lại sau.", { id: loadToast });
     }
   };
 
