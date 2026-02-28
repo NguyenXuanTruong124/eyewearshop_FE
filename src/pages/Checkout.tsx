@@ -313,7 +313,7 @@ const Checkout: React.FC = () => {
               <div className="card-section">
                 <h3 className="card-title">💳 Phương thức thanh toán</h3>
                 <div className="payment-list">
-                  {['COD', 'VNPay', 'MoMo'].map(method => (
+                  {['VNPay', 'MoMo'].map(method => (
                     <div key={method} className={`pay-item ${paymentMethod === method ? 'active' : ''}`} onClick={() => setPaymentMethod(method)}>
                       <strong>{method === 'COD' ? 'Thanh toán khi nhận hàng' : method}</strong>
                     </div>
