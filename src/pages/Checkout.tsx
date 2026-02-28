@@ -6,12 +6,14 @@ import './styles/Checkout.css';
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  
-  // Trạng thái khởi tạo ban đầu để null để tránh nhảy giao diện khi đang load
-  const [step, setStep] = useState<number | null>(null); 
+
+  const [step, setStep] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [needsPrescription, setNeedsPrescription] = useState(false); 
+  const [needsPrescription, setNeedsPrescription] = useState(false);
   const [cartData, setCartData] = useState<any>(null);
+
+  // Lưu ID đơn hàng sau khi tạo thành công để dùng cho Payment
+  const [orderId, setOrderId] = useState<number | null>(null);
 
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [savedPrescriptions, setSavedPrescriptions] = useState<any[]>([]);
@@ -27,62 +29,40 @@ const Checkout: React.FC = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('COD');
 
-  // 🔥 HÀM KIỂM TRA LOGIC VỚI LOG CHI TIẾT
-  const checkRequirementsLocally = (items: any[]) => {
-    console.group('🔍 [Checkout Log] Bắt đầu quét điều kiện đơn kính');
-    
-    let hasFrame = false;
-    let hasRxLens = false;
-
-    items.forEach((item, index) => {
-      const pName = item.variant?.product?.productName;
-      const pType = item.variant?.product?.productType; // Lấy từ cột productType trong Swagger
-
-      console.log(`📌 Sản phẩm #${index + 1}: ${pName}`);
-      console.log(`   - Loại (productType): ${pType}`);
-
-      if (pType === 'FRAME') {
-        hasFrame = true;
-        console.log(`   ✅ Đã tìm thấy Gọng kính (FRAME)`);
-      }
-      if (pType === 'RX_LENS') {
-        hasRxLens = true;
-        console.log(`   ✅ Đã tìm thấy Tròng kính (RX_LENS)`);
-      }
-    });
-
-    const isRequired = hasFrame && hasRxLens;
-    
-    console.log('--- Kết luận ---');
-    console.log(`🔸 Có Gọng (FRAME): ${hasFrame}`);
-    console.log(`🔸 Có Tròng (RX_LENS): ${hasRxLens}`);
-    console.log(`🚀 Cần nhập toa kính (needsPrescription): ${isRequired}`);
-    console.groupEnd();
-
-    return isRequired;
-  };
-
   useEffect(() => {
     const initData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        
-        // 1. Lấy giỏ hàng
+        // 1. Lấy giỏ hàng từ Session
         const cartRes = await axiosClient.get('/cart');
-        let currentCart = cartRes?.data && cartRes.data.items && cartRes.data.items.length > 0 
-          ? cartRes.data 
-          : JSON.parse(localStorage.getItem('localCart') || '{"items":[],"summary":{"subTotal":0,"itemCount":0}}');
-        
-        setCartData(currentCart);
+        console.log('📡 [API GET /cart] Phản hồi:', cartRes.data);
 
-        // 🔥 KIỂM TRA LOGIC COMBO THAY THẾ CHO API REQUIREMENTS
-        const isRequired = checkRequirementsLocally(currentCart.items || []);
-        setNeedsPrescription(isRequired);
-        
+        if (!cartRes.data || !cartRes.data.items || cartRes.data.items.length === 0) {
+          toast.error('Giỏ hàng trống, vui lòng thêm sản phẩm.');
+          navigate('/cart');
+          return;
+        }
+
+        setCartData(cartRes.data);
+
+        // 2. Tải requirement để kiểm tra xem có cần nhập thông số mắt không
+        try {
+          // Lưu ý: Đường dẫn API requirement có thể cần điều chỉnh nếu tên API API thực tế của bạn khác
+          const reqRes = await axiosClient.get('/checkout/requirements');
+          console.log('📡 [API GET /checkout/requirements] Phản hồi:', reqRes.data);
+          // Kiểm tra field trả về (có thể là needsPrescription hoặc requiresPrescription tuỳ BE bạn định nghĩa)
+          setNeedsPrescription(reqRes.data.needsPrescription || reqRes.data.requiresPrescription || false);
+        } catch (err: any) {
+          console.error("Lỗi gọi API yêu cầu:", err);
+          // Fallback logic nếu API chưa có sẵn
+          const hasFrame = cartRes.data.items.some((i: any) => i.variant?.product?.productType === 'FRAME');
+          const hasRxLens = cartRes.data.items.some((i: any) => i.variant?.product?.productType === 'RX_LENS');
+          setNeedsPrescription(hasFrame && hasRxLens);
+        }
+
         // Luôn khởi tạo ở bước đầu tiên hiển thị thực tế (số 1)
         setStep(1);
 
-        // 2. Tải dữ liệu Profile, Địa chỉ và Đơn kính
+        // 3. Tải dữ liệu Profile, Địa chỉ và Đơn kính
         const [addrRes, presRes, profileRes] = await Promise.all([
           axiosClient.get('/account/addresses'),
           axiosClient.get('/prescriptions'),
@@ -99,9 +79,9 @@ const Checkout: React.FC = () => {
             email: profileRes.data.email || ''
           }));
         }
-      } catch (e) { 
-        console.error("Lỗi khởi tạo:", e);
-        navigate('/cart'); 
+      } catch (e) {
+        console.error("Lỗi khởi tạo Checkout:", e);
+        navigate('/cart');
       }
     };
     initData();
@@ -112,9 +92,9 @@ const Checkout: React.FC = () => {
     const p = savedPrescriptions.find(item => item.prescriptionId === id);
     if (p) {
       setPrescription({
-        od_sph: p.odSph || p.rightSphere || '', od_cyl: p.odCyl || p.rightCylinder || '', od_axis: p.odAxis || p.rightAxis || '', od_add: p.odAdd || p.rightAdd || '',
-        os_sph: p.osSph || p.leftSphere || '', os_cyl: p.osCyl || p.leftCylinder || '', os_axis: p.osAxis || p.leftAxis || '', os_add: p.osAdd || p.leftAdd || '',
-        pd: p.pd || p.rightPD || p.leftPD || ''
+        od_sph: p.odSph || p.rightSphere || p.od_sph || '', od_cyl: p.odCyl || p.rightCylinder || p.od_cyl || '', od_axis: p.odAxis || p.rightAxis || p.od_axis || '', od_add: p.odAdd || p.rightAdd || p.od_add || '',
+        os_sph: p.osSph || p.leftSphere || p.os_sph || '', os_cyl: p.osCyl || p.leftCylinder || p.os_cyl || '', os_axis: p.osAxis || p.leftAxis || p.os_axis || '', os_add: p.osAdd || p.leftAdd || p.os_add || '',
+        pd: p.pd || p.rightPD || p.pd_value || ''
       });
       toast.success(`Đã áp dụng thông số mắt`);
     }
@@ -126,9 +106,9 @@ const Checkout: React.FC = () => {
     if (a) {
       setShippingInfo(prev => ({
         ...prev,
-        fullName: a.receiverName || prev.fullName,
-        phoneNumber: a.phoneNumber || prev.phoneNumber,
-        address: a.addressLine || '',
+        fullName: a.receiverName || a.fullName || prev.fullName,
+        phoneNumber: a.phoneNumber || a.phone || prev.phoneNumber,
+        address: a.addressLine || a.address || '',
         city: a.city || '',
         district: a.district || '',
         ward: a.ward || ''
@@ -137,26 +117,81 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const handleFinalOrder = async () => {
+  // Gọi API Checkout chốt đơn khi nhấn Tiếp tục ở Bước 2
+  const handleProceedToPayment = async () => {
+    if (!selectedAddressId) {
+      toast.error("Vui lòng chọn địa chỉ giao hàng!");
+      return;
+    }
+
     setLoading(true);
     try {
-      const orderRes = await axiosClient.post('/checkout', {
-        shippingAddressId: selectedAddressId,
-        ...shippingInfo,
-        prescription: needsPrescription ? prescription : null
-      });
-      
-      const payRes = await axiosClient.post('/payments', {
-        orderId: orderRes.data.orderId,
-        paymentMethod: paymentMethod
-      });
+      const payload: any = {
+        addressId: selectedAddressId,
+        shippingMethod: "Standard"
+      };
+      if (needsPrescription && selectedPrescriptionId) {
+        payload.prescriptionId = selectedPrescriptionId;
+      }
 
-      if (paymentMethod === 'VNPay') window.location.href = payRes.data.paymentUrl;
-      else navigate(`/order-success?orderId=${orderRes.data.orderId}`);
-    } catch (e: any) { 
-      toast.error(e.response?.data?.message || "Có lỗi khi đặt hàng"); 
-    } finally { 
-      setLoading(false); 
+      console.log('➡️ [Checkout] Đang gửi Payload Checkout:', payload);
+      const res = await axiosClient.post('/checkout', payload);
+      console.log('✅ [Checkout] Phản hồi Checkout:', res.data);
+
+      if (res.data && res.data.orderId) {
+        setOrderId(res.data.orderId);
+        toast.success("Thông tin đã được xác nhận. Order ID: " + res.data.orderId);
+        console.log('🎯 [Checkout] Đã lưu Order ID thành công:', res.data.orderId);
+
+        // Chuyển sang bước thanh toán an toàn
+        setStep(needsPrescription ? 3 : 2);
+      } else {
+        toast.error("Không nhận được Order ID từ Server!");
+        console.error('❌ [Checkout] Phản hồi không có Order ID:', res.data);
+      }
+    } catch (e: any) {
+      console.error('❌ [Checkout] Lỗi tạo đơn hàng:', e.response?.data || e.message);
+      toast.error(e.response?.data?.message || "Lỗi khi chốt đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalOrder = async () => {
+    if (!orderId) {
+      toast.error("Thiếu thông tin đơn hàng!");
+      return;
+    }
+    setLoading(true);
+    try {
+      const paymentPayload = {
+        orderId: orderId,
+        paymentMethod: paymentMethod,
+        paymentType: paymentMethod, // Đề phòng BE cần thêm field paymentType
+        amount: cartData.summary?.subTotal || 0,
+        note: shippingInfo.notes || ""
+      };
+
+      console.log('➡️ [Payment] Đang gửi Payload Payment:', paymentPayload);
+      const payRes = await axiosClient.post('/payments', paymentPayload);
+      console.log('✅ [Payment] Phản hồi Payment:', payRes.data);
+
+      const vnpayUrl = payRes.data.paymentUrl || payRes.data.url || payRes.data.redirectUrl || (payRes.data.data && payRes.data.data.paymentUrl);
+      if (paymentMethod === 'VNPay') {
+        if (vnpayUrl) {
+          window.location.href = vnpayUrl;
+        } else {
+          toast.error("Không nhận được Link thanh toán VNPay từ Request!");
+          console.error("❌ VNPay Missing URL, payRes.data:", payRes.data);
+        }
+      } else {
+        navigate(`/order-success?orderId=${orderId}`);
+      }
+    } catch (e: any) {
+      console.error('❌ [Payment] Lỗi thanh toán:', e.response?.data || e.message);
+      toast.error(e.response?.data?.message || "Có lỗi khi thanh toán. Xem Console để biết chi tiết.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,11 +200,10 @@ const Checkout: React.FC = () => {
   return (
     <div className="checkout-page">
       <div className="checkout-container">
-        
-        {/* PROGRESS BAR - ĐÃ FIX LOGIC SÁNG BƯỚC THEO NHU CẦU THỰC TẾ */}
+
+        {/* PROGRESS BAR */}
         <div className="checkout-stepper-new">
           {needsPrescription ? (
-            // TRƯỜNG HỢP 3 BƯỚC (CÓ ĐỘ KÍNH)
             <>
               <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Độ kính</p></div>
               <div className="line"></div>
@@ -178,7 +212,6 @@ const Checkout: React.FC = () => {
               <div className={`step ${step === 3 ? 'active' : ''}`}><span>3</span><p>Thanh toán</p></div>
             </>
           ) : (
-            // TRƯỜNG HỢP 2 BƯỚC (KHÔNG CẦN ĐỘ KÍNH)
             <>
               <div className={`step ${step === 1 ? 'active' : ''}`}><span>1</span><p>Thông tin</p></div>
               <div className="line"></div>
@@ -189,8 +222,8 @@ const Checkout: React.FC = () => {
 
         <div className="checkout-content-grid">
           <main className="checkout-main">
-            
-            {/* BƯỚC 1: ĐỘ KÍNH (Chỉ hiện nếu needsPrescription = true) */}
+
+            {/* BƯỚC 1: ĐỘ KÍNH */}
             {step === 1 && needsPrescription && (
               <div className="card-section">
                 <h3 className="card-title">👓 Thông số độ kính</h3>
@@ -214,10 +247,10 @@ const Checkout: React.FC = () => {
                         {['sph', 'cyl', 'axis', 'add'].map(f => (
                           <div className="field" key={f}>
                             <label>{f.toUpperCase()}</label>
-                            <input 
+                            <input
                               type="text"
-                              value={(prescription as any)[`${eye}_${f}`]} 
-                              onChange={(e) => setPrescription({...prescription, [`${eye}_${f}`]: e.target.value})} 
+                              value={(prescription as any)[`${eye}_${f}`]}
+                              onChange={(e) => setPrescription({ ...prescription, [`${eye}_${f}`]: e.target.value })}
                             />
                           </div>
                         ))}
@@ -226,7 +259,7 @@ const Checkout: React.FC = () => {
                   ))}
                   <div className="field pd-field">
                     <label>PD (Khoảng cách đồng tử)</label>
-                    <input value={prescription.pd} onChange={(e) => setPrescription({...prescription, pd: e.target.value})} />
+                    <input value={prescription.pd} onChange={(e) => setPrescription({ ...prescription, pd: e.target.value })} />
                   </div>
                 </div>
                 <div className="actions">
@@ -235,7 +268,7 @@ const Checkout: React.FC = () => {
               </div>
             )}
 
-            {/* BƯỚC GIAO HÀNG (Step 1 nếu không toa, Step 2 nếu có toa) */}
+            {/* BƯỚC GIAO HÀNG */}
             {((step === 1 && !needsPrescription) || (step === 2 && needsPrescription)) && (
               <div className="card-section">
                 <h3 className="card-title">📍 Thông tin giao hàng</h3>
@@ -251,29 +284,31 @@ const Checkout: React.FC = () => {
                 <div className="shipping-form">
                   <div className="field">
                     <label>Họ và tên *</label>
-                    <input value={shippingInfo.fullName} onChange={e => setShippingInfo({...shippingInfo, fullName: e.target.value})} />
+                    <input value={shippingInfo.fullName} onChange={e => setShippingInfo({ ...shippingInfo, fullName: e.target.value })} />
                   </div>
                   <div className="input-row-2">
-                    <div className="field"><label>Số điện thoại *</label><input value={shippingInfo.phoneNumber} onChange={e => setShippingInfo({...shippingInfo, phoneNumber: e.target.value})} /></div>
-                    <div className="field"><label>Email *</label><input value={shippingInfo.email} onChange={e => setShippingInfo({...shippingInfo, email: e.target.value})} /></div>
+                    <div className="field"><label>Số điện thoại *</label><input value={shippingInfo.phoneNumber} onChange={e => setShippingInfo({ ...shippingInfo, phoneNumber: e.target.value })} /></div>
+                    <div className="field"><label>Email *</label><input value={shippingInfo.email} onChange={e => setShippingInfo({ ...shippingInfo, email: e.target.value })} /></div>
                   </div>
                   <div className="field">
                     <label>Địa chỉ nhận hàng *</label>
-                    <input value={shippingInfo.address} onChange={e => setShippingInfo({...shippingInfo, address: e.target.value})} />
+                    <input value={shippingInfo.address} onChange={e => setShippingInfo({ ...shippingInfo, address: e.target.value })} />
                   </div>
                   <div className="input-row-2">
-                    <div className="field"><label>Tỉnh/Thành phố *</label><input value={shippingInfo.city} onChange={e => setShippingInfo({...shippingInfo, city: e.target.value})} /></div>
-                    <div className="field"><label>Quận/Huyện *</label><input value={shippingInfo.district} onChange={e => setShippingInfo({...shippingInfo, district: e.target.value})} /></div>
+                    <div className="field"><label>Tỉnh/Thành phố *</label><input value={shippingInfo.city} onChange={e => setShippingInfo({ ...shippingInfo, city: e.target.value })} /></div>
+                    <div className="field"><label>Quận/Huyện *</label><input value={shippingInfo.district} onChange={e => setShippingInfo({ ...shippingInfo, district: e.target.value })} /></div>
                   </div>
                 </div>
                 <div className="actions">
                   {needsPrescription && <button className="btn-back" onClick={() => setStep(1)}>Quay lại</button>}
-                  <button className="btn-next" onClick={() => (needsPrescription ? setStep(3) : setStep(2))}>Tiếp tục</button>
+                  <button className="btn-next" onClick={handleProceedToPayment} disabled={loading}>
+                    {loading ? "Đang xử lý..." : "Tiếp tục"}
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* BƯỚC THANH TOÁN (Step 2 nếu không toa, Step 3 nếu có toa) */}
+            {/* BƯỚC THANH TOÁN */}
             {((step === 2 && !needsPrescription) || (step === 3 && needsPrescription)) && (
               <div className="card-section">
                 <h3 className="card-title">💳 Phương thức thanh toán</h3>

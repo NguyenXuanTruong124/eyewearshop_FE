@@ -9,64 +9,24 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
   const [cartData, setCartData] = useState<any>({ items: [], summary: { subTotal: 0, itemCount: 0 } });
   const [loading, setLoading] = useState(true);
-  const [usingLocal, setUsingLocal] = useState<boolean>(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<boolean>(false);
   const [removeConfirmVariantId, setRemoveConfirmVariantId] = useState<number | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false);
 
-  const getLocalCart = () => {
-    try {
-      const raw = localStorage.getItem('localCart');
-      const data = raw ? JSON.parse(raw) : { items: [], summary: { subTotal: 0, itemCount: 0 } };
-      console.log('📦 [Cart] Dữ liệu hiện có tại Local Storage:', data);
-      return data;
-    } catch (e) { 
-      console.error('❌ [Cart] Lỗi đọc Local Storage:', e);
-      return { items: [], summary: { subTotal: 0, itemCount: 0 } }; 
-    }
-  };
-
-  const saveLocalCart = (data: any) => {
-    // 🔥 Đảm bảo dữ liệu lưu xuống có cấu trúc: variant.product.productType
-    console.log('💾 [Cart] Đang đồng bộ cấu trúc Server vào Local Storage:', data);
-    localStorage.setItem('localCart', JSON.stringify(data));
-  };
-
   const fetchCart = useCallback(async () => {
-    const token = localStorage.getItem('accessToken');
-    console.log('📡 [Cart] Đang tải dữ liệu. Trạng thái Login:', !!token);
-    
-    if (!token) {
-      const local = getLocalCart();
-      setCartData(local);
-      setUsingLocal(true);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       const response = await axiosClient.get('/cart');
-      console.log('✅ [Cart] Phản hồi từ Server Azure:', response.data);
+      console.log('✅ [Cart] Phản hồi từ Server:', response.data);
 
-      if (response?.data && response.data.items && response.data.items.length > 0) {
-        // Kiểm tra log xem server có gửi productType không để debug nhanh
-        console.log('🔍 [Cart Debug] Loại SP đầu tiên nhận được:', response.data.items[0]?.variant?.product?.productType);
-        
+      if (response?.data && response.data.items) {
         setCartData(response.data);
-        saveLocalCart(response.data); // Ghi đè Local bằng cấu trúc chuẩn của Server
-        setUsingLocal(false);
       } else {
-        console.warn('⚠️ [Cart] Server rỗng, lấy hàng từ Local để hiển thị.');
-        const local = getLocalCart();
-        setCartData(local);
-        setUsingLocal(local.items.length > 0);
+        setCartData({ items: [], summary: { subTotal: 0, itemCount: 0 } });
       }
     } catch (error: any) {
       console.error('❌ [Cart] Lỗi API /cart:', error.message);
-      const local = getLocalCart();
-      setCartData(local);
-      setUsingLocal(true);
+      setCartData({ items: [], summary: { subTotal: 0, itemCount: 0 } });
     } finally {
       setLoading(false);
     }
@@ -84,22 +44,6 @@ const Cart: React.FC = () => {
 
   const handleUpdateQty = async (variantId: number, newQty: number) => {
     if (newQty < 1) return;
-    console.log(`🔄 [Cart] Cập nhật số lượng variant ${variantId} -> ${newQty}. Chế độ Local: ${usingLocal}`);
-
-    if (usingLocal) {
-      const local = getLocalCart();
-      const it = local.items.find((i: any) => i.variantId === variantId);
-      if (it) it.quantity = newQty;
-      
-      local.summary.itemCount = local.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
-      local.summary.subTotal = local.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
-      
-      saveLocalCart(local);
-      setCartData(local);
-      window.dispatchEvent(new Event('cartUpdated'));
-      return;
-    }
-
     try {
       await axiosClient.put(`/cart/items/${variantId}`, { quantity: newQty });
       await fetchCart();
@@ -114,20 +58,6 @@ const Cart: React.FC = () => {
     if (removeConfirmVariantId === null) return;
     const variantId = removeConfirmVariantId;
     setShowRemoveConfirm(false);
-    console.log(`🗑️ [Cart] Đang xóa variant ID: ${variantId}`);
-
-    if (usingLocal) {
-      const local = getLocalCart();
-      local.items = local.items.filter((i: any) => i.variantId !== variantId);
-      
-      local.summary.itemCount = local.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
-      local.summary.subTotal = local.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
-      
-      saveLocalCart(local);
-      setCartData(local);
-      window.dispatchEvent(new Event('cartUpdated'));
-      return;
-    }
 
     try {
       await axiosClient.delete(`/cart/items/${variantId}`);
@@ -151,59 +81,14 @@ const Cart: React.FC = () => {
 
   const confirmClearCart = async () => {
     setShowClearConfirm(false);
-    console.log('🧹 [Cart] Đang làm sạch giỏ hàng...');
-    
-    if (usingLocal) {
-        const empty = { items: [], summary: { subTotal: 0, itemCount: 0 } };
-        saveLocalCart(empty);
-        setCartData(empty);
-        window.dispatchEvent(new Event('cartUpdated'));
-        return;
-    }
-
     try {
       await axiosClient.delete('/cart');
-      const empty = { items: [], summary: { subTotal: 0, itemCount: 0 } };
-      saveLocalCart(empty);
-      setCartData(empty);
+      setCartData({ items: [], summary: { subTotal: 0, itemCount: 0 } });
       window.dispatchEvent(new Event('cartUpdated'));
       toast.success('Giỏ hàng đã được làm sạch!');
     } catch (err: any) {
       console.error('❌ [Cart] Lỗi dọn dẹp giỏ hàng:', err.message);
       toast.error('Không thể xóa giỏ hàng.');
-    }
-  };
-
-  const syncLocalCartToServer = async () => {
-    const local = getLocalCart();
-    console.log('🔄 [Cart] Bắt đầu đẩy dữ liệu Local lên Server Azure...');
-    
-    if (!local.items || local.items.length === 0) {
-      toast('Không có sản phẩm để đồng bộ', { icon: 'ℹ️' });
-      return;
-    }
-
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      toast.error('Vui lòng đăng nhập để đồng bộ giỏ hàng.');
-      return;
-    }
-
-    const loadToast = toast.loading('Đang đồng bộ giỏ hàng...');
-    try {
-      // Sử dụng vòng lặp tuần tự để đảm bảo Azure nhận diện đúng Session ID
-      for (const it of local.items) {
-        await axiosClient.post('/cart/items', { variantId: it.variantId, quantity: it.quantity });
-      }
-      
-      console.log('✅ [Cart] Đồng bộ thành công tất cả sản phẩm.');
-      await fetchCart();
-      saveLocalCart({ items: [], summary: { subTotal: 0, itemCount: 0 } });
-      window.dispatchEvent(new Event('cartUpdated'));
-      toast.success('Đồng bộ thành công!', { id: loadToast });
-    } catch (err: any) {
-      console.error('❌ [Cart] Lỗi trong quá trình đồng bộ:', err.message);
-      toast.error('Đồng bộ thất bại.', { id: loadToast });
     }
   };
 
@@ -227,7 +112,6 @@ const Cart: React.FC = () => {
 
         <div className="cart-actions-toolbar">
           <button className="btn-secondary" onClick={handleClearCart}>Xóa toàn bộ</button>
-          <button className="btn-secondary" onClick={syncLocalCartToServer}>Đồng bộ với Server</button>
         </div>
 
         <div className="cart-layout">
@@ -235,7 +119,7 @@ const Cart: React.FC = () => {
             {cartData.items.map((item: any) => (
               <div className="cart-item" key={item.variantId}>
                 <img src={item.variant?.product?.primaryImageUrl || 'https://placehold.co/400x400?text=EyewearHut'}
-                     className="cart-item-img" alt="product" />
+                  className="cart-item-img" alt="product" />
 
                 <div className="cart-item-info">
                   <h4>{item.variant?.product?.productName}</h4>
@@ -260,7 +144,6 @@ const Cart: React.FC = () => {
             <div className="summary-row"><span>Vận chuyển</span><span className="shipping-free">Miễn phí</span></div>
             <div className="summary-total-row"><span>Tổng cộng</span><span>{(cartData.summary?.subTotal || 0).toLocaleString()}đ</span></div>
             <button className="btn-checkout" onClick={() => {
-              console.log('🚚 [Cart] Chuyển hướng sang trang Checkout...');
               navigate('/checkout');
             }}>Tiến hành thanh toán</button>
             <Link to="/products" className="btn-continue-shopping" style={{ display: 'block', textAlign: 'center', marginTop: '15px' }}>Tiếp tục mua sắm</Link>

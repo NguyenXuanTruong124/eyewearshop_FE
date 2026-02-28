@@ -3,6 +3,7 @@ import axios from 'axios';
 const axiosClient = axios.create({
   baseURL:
     'https://eyewearshop-api20260210202657-csdeaweda0brgmev.southeastasia-01.azurewebsites.net/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axiosClient from '../API_BE/axiosClient';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 import './styles/ProductDetail.css';
 
 const ProductDetail: React.FC = () => {
@@ -34,7 +34,7 @@ const ProductDetail: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     if (id) fetchProductDetail();
   }, [id]);
 
@@ -52,65 +52,19 @@ const ProductDetail: React.FC = () => {
         quantity: quantity
       };
 
-      // 1. Gửi lên Server Azure
-      const response = await axiosClient.post('/cart/items', payload); 
+      // 1. Gửi lên Server API, nhờ axios bật withCredentials: true,
+      // server sẽ tự tạo và duy trì Session (JSESSIONID) cho giỏ hàng.
+      const response = await axiosClient.post('/cart/items', payload);
 
       if (response.status >= 200 && response.status < 300) {
-        toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, { id: loadToast }); 
-
-        // 2. Cố gắng lấy giỏ hàng mới nhất từ Server để đồng bộ Session
-        let cartResp: any = null;
-        try {
-          cartResp = await axiosClient.get('/cart');
-        } catch (err) {
-          console.warn("⚠️ Không thể lấy giỏ hàng từ Server, sử dụng Local dự phòng.");
-        }
-
-        // 3. CẬP NHẬT LOCAL STORAGE (Bản sao bảo hiểm)
-        // 🔥 Đảm bảo lưu đúng cấu trúc variant.product.productType
-        if (!cartResp || !cartResp.data || !cartResp.data.items || cartResp.data.items.length === 0) {
-          const localRaw = localStorage.getItem('localCart');
-          const localCart = localRaw ? JSON.parse(localRaw) : { items: [], summary: { subTotal: 0, itemCount: 0 } };
-
-          const newItem = {
-            variantId: selectedVariant.variantId,
-            quantity: quantity,
-            variant: {
-              price: selectedVariant.price,
-              color: selectedVariant.color,
-              product: {
-                productId: product.productId,
-                productName: product.productName,
-                productType: product.productType, // 🔥 THÊM DÒNG NÀY ĐỂ FIX LỖI UNDEFINED TẠI CHECKOUT
-                primaryImageUrl: product.images?.[0]?.url || ''
-              }
-            }
-          };
-
-          const existing = localCart.items.find((i: any) => i.variantId === newItem.variantId);
-          if (existing) {
-            existing.quantity = (existing.quantity || 0) + quantity;
-          } else {
-            localCart.items.push(newItem);
-          }
-
-          // Tính toán lại summary cho Local
-          localCart.summary.itemCount = localCart.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0);
-          localCart.summary.subTotal = localCart.items.reduce((s: number, it: any) => s + ((it.variant?.price || 0) * (it.quantity || 0)), 0);
-
-          localStorage.setItem('localCart', JSON.stringify(localCart));
-          console.log('📦 [ProductDetail] Đã lưu vào Local với ProductType:', product.productType);
-        } else {
-          // Nếu server trả về data chuẩn, ghi đè Local bằng data của server luôn
-          localStorage.setItem('localCart', JSON.stringify(cartResp.data));
-        }
+        toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, { id: loadToast });
 
         // Thông báo cho Badge/Header cập nhật
         window.dispatchEvent(new Event('cartUpdated'));
       }
     } catch (error: any) {
       console.error("❌ Lỗi thêm giỏ hàng:", error);
-      toast.error("Hệ thống bận, vui lòng thử lại sau.", { id: loadToast });
+      toast.error(error.response?.data?.message || "Hệ thống bận, vui lòng thử lại sau.", { id: loadToast });
     }
   };
 
@@ -128,20 +82,20 @@ const ProductDetail: React.FC = () => {
 
       <div className="product-main">
         <div className="product-gallery">
-          <img 
-            src={mainImg} 
-            alt={product.productName} 
-            className="main-img" 
-            onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400?text=EyewearHut'} 
+          <img
+            src={mainImg}
+            alt={product.productName}
+            className="main-img"
+            onError={(e) => e.currentTarget.src = 'https://placehold.co/600x400?text=EyewearHut'}
           />
           <div className="thumb-list">
             {product.images?.map((img: any) => (
-              <img 
-                key={img.imageId} 
-                src={img.url} 
-                className={`thumb-img ${mainImg === img.url ? 'active' : ''}`} 
-                onClick={() => setMainImg(img.url)} 
-                alt="thumbnail" 
+              <img
+                key={img.imageId}
+                src={img.url}
+                className={`thumb-img ${mainImg === img.url ? 'active' : ''}`}
+                onClick={() => setMainImg(img.url)}
+                alt="thumbnail"
               />
             ))}
           </div>
@@ -150,7 +104,7 @@ const ProductDetail: React.FC = () => {
         <div className="product-order-info">
           <p className="brand-label">{product.brandName}</p>
           <h1 className="product-title">{product.productName}</h1>
-          
+
           <div className="price-row">
             <span className="current-price">
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(selectedVariant?.price || product.basePrice)}
@@ -161,8 +115,8 @@ const ProductDetail: React.FC = () => {
             <label className="option-label">Màu sắc:</label>
             <div className="variant-selector">
               {product.variants?.map((v: any) => (
-                <button 
-                  key={v.variantId} 
+                <button
+                  key={v.variantId}
                   className={`variant-chip ${selectedVariant?.variantId === v.variantId ? 'active' : ''}`}
                   onClick={() => { setSelectedVariant(v); setQuantity(1); }}
                 >
@@ -176,17 +130,17 @@ const ProductDetail: React.FC = () => {
             <label className="option-label">Số lượng:</label>
             <div className="qty-row">
               <div className="quantity-control">
-                <button 
-                  type="button" 
-                  className="qty-btn" 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                <button
+                  type="button"
+                  className="qty-btn"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!isAvailable}
                 >-</button>
                 <input className="qty-input" value={isAvailable ? quantity : 0} readOnly />
-                <button 
-                  type="button" 
-                  className="qty-btn" 
-                  onClick={() => setQuantity(quantity + 1)} 
+                <button
+                  type="button"
+                  className="qty-btn"
+                  onClick={() => setQuantity(quantity + 1)}
                   disabled={!isAvailable || quantity >= availableStock}
                 >+</button>
               </div>
@@ -197,15 +151,15 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div className="action-btns">
-            <button 
-              className="add-cart-btn" 
-              onClick={handleAddToCart} 
+            <button
+              className="add-cart-btn"
+              onClick={handleAddToCart}
               disabled={!isAvailable}
             >
               🛒 Thêm vào giỏ hàng
             </button>
           </div>
-          
+
           <div className="product-description">
             <h3 className="description-title">Mô tả sản phẩm</h3>
             <p className="description-text">{product.description || "Chưa có mô tả cho sản phẩm này."}</p>
