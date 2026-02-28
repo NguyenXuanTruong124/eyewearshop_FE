@@ -11,35 +11,14 @@ const Header: React.FC = () => {
 
   const fetchCartCount = useCallback(async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-
-      // ❗ CHƯA LOGIN → dùng local cart
-      if (!token) {
-        const raw = localStorage.getItem('localCart');
-
-        if (raw) {
-          const local = JSON.parse(raw);
-          setCartCount(local.summary?.itemCount || 0);
-        } else setCartCount(0);
-
-        return;
-      }
-
-      // ✅ ĐÃ LOGIN → gọi server
       const response = await axiosClient.get('/cart');
 
-      let count = response?.data?.summary?.itemCount || 0;
-
-      // fallback local nếu server rỗng
-      if (!count) {
-        const raw = localStorage.getItem('localCart');
-        if (raw) {
-          const local = JSON.parse(raw);
-          count = local.summary?.itemCount || 0;
-        }
+      // ✅ items.length là số lượng SẢN PHẨM KHÁC NHAU trong giỏ hàng
+      if (response?.data && response.data.items) {
+        setCartCount(response.data.items.length);
+      } else {
+        setCartCount(0);
       }
-
-      setCartCount(count);
     } catch (error) {
       console.error('Lỗi lấy số lượng giỏ hàng:', error);
       setCartCount(0);
