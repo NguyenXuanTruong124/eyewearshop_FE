@@ -20,6 +20,9 @@ const Profile: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      // Xóa Session Giỏ hàng hiện tại ở Backend
+      await axiosClient.delete("/cart").catch(() => { });
+
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
         await axiosClient.post("/auth/logout", { refreshToken });
@@ -28,6 +31,12 @@ const Profile: React.FC = () => {
       console.error("Lỗi đăng xuất:", error);
     } finally {
       localStorage.clear();
+
+      // Xoá Cookie Session hiện tại ở Frontend
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
       window.location.href = "/";
     }
   };
@@ -50,36 +59,36 @@ const Profile: React.FC = () => {
       <div className="profile-container">
         {/* Sidebar Menu điều hướng */}
         <aside className="profile-sidebar">
-          <div 
-            className={`sidebar-menu-item ${activeTab === "info" ? "active" : ""}`} 
+          <div
+            className={`sidebar-menu-item ${activeTab === "info" ? "active" : ""}`}
             onClick={() => setActiveTab("info")}
           >
             <span>👤</span> Thông tin cá nhân
           </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "orders" ? "active" : ""}`} 
+          <div
+            className={`sidebar-menu-item ${activeTab === "orders" ? "active" : ""}`}
             onClick={() => setActiveTab("orders")}
           >
             <span>📦</span> Đơn hàng của tôi
           </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "address" ? "active" : ""}`} 
+          <div
+            className={`sidebar-menu-item ${activeTab === "address" ? "active" : ""}`}
             onClick={() => setActiveTab("address")}
           >
             <span>📍</span> Địa chỉ
           </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "eyes" ? "active" : ""}`} 
+          <div
+            className={`sidebar-menu-item ${activeTab === "eyes" ? "active" : ""}`}
             onClick={() => setActiveTab("eyes")}
           >
             <span>👁️</span> Thông số mắt
           </div>
 
-          <div 
-            className={`sidebar-menu-item ${activeTab === "password" ? "active" : ""}`} 
+          <div
+            className={`sidebar-menu-item ${activeTab === "password" ? "active" : ""}`}
             onClick={() => setActiveTab("password")}
           >
             <span>🔒</span> Đổi mật khẩu

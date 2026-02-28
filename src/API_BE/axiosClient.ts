@@ -89,12 +89,13 @@ axiosClient.interceptors.response.use(
 function logoutAndRedirect() {
   if (isRedirecting) return;
 
-  isRedirecting = true;
+  // Xóa toàn bộ LocalStorage
+  localStorage.clear();
 
-  // Xóa token
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('userEmail');
+  // Xoá Cookie Session hiện tại ở Frontend
+  document.cookie.split(";").forEach((c) => {
+    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
 
   // Thông báo cho Header cập nhật
   window.dispatchEvent(new Event('authChanged'));

@@ -50,16 +50,23 @@ const Header: React.FC = () => {
   // ⭐ LOGOUT CHUẨN GIỐNG PROFILE
   const handleLogout = async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
+      // Xóa Session Giỏ hàng hiện tại ở Backend để không lưu vết cho người sau
+      await axiosClient.delete('/cart').catch(() => { });
 
+      const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         await axiosClient.post('/auth/logout', { refreshToken });
       }
     } catch (error) {
       console.error('Lỗi đăng xuất:', error);
     } finally {
-      // 🔥 Giống Profile — xoá toàn bộ
+      // 🔥 Xoá toàn bộ LocalStorage
       localStorage.clear();
+
+      // 🔥 Xoá Cookie Session hiện tại ở Frontend (nếu Backend trả về Cookie non-HttpOnly)
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
 
       // 🔥 Redirect + reload để reset app state
       window.location.replace('/');

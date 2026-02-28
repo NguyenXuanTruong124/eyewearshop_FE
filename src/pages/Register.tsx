@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../API_BE/axiosClient.ts'; 
+import axiosClient from '../API_BE/axiosClient.ts';
+import toast from 'react-hot-toast';
 import './styles/Register.css';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // Các trạng thái lưu trữ thông tin đăng ký
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage('');
 
     // Kiểm tra khớp mật khẩu trước khi gọi API
     if (password !== confirmPassword) {
-      setErrorMessage('Mật khẩu xác nhận không khớp!');
+      toast.error('Mật khẩu xác nhận không khớp!');
       return;
     }
 
     setLoading(true);
+    const registerToast = toast.loading('Đang xử lý đăng ký...');
 
     try {
       // Gọi API đăng ký dựa trên Swagger
@@ -41,15 +41,19 @@ const Register: React.FC = () => {
       if (response.data && response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('userEmail', response.data.email);
-        
-        alert('Đăng ký tài khoản thành công!');
-        navigate('/'); // Chuyển thẳng về trang chủ hoặc trang đăng nhập tùy bạn
+
+        toast.success('Đăng ký tài khoản thành công!', { id: registerToast });
+
+        // Tạo khoảng chờ nhỏ để user nhìn thấy toast thành công
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       }
     } catch (error: any) {
       console.error('Register error:', error);
       // Hiển thị lỗi từ server hoặc lỗi mặc định
       const msg = error.response?.data?.message || 'Đăng ký thất bại. Email có thể đã tồn tại!';
-      setErrorMessage(msg);
+      toast.error(msg, { id: registerToast });
     } finally {
       setLoading(false);
     }
@@ -61,13 +65,6 @@ const Register: React.FC = () => {
         <div className="register-box">
           <h2>Đăng ký tài khoản</h2>
           <p>Tham gia với EyewearHut ngay hôm nay</p>
-
-          {/* Hiển thị thông báo lỗi nếu có */}
-          {errorMessage && (
-            <div style={{ color: '#cc0000', backgroundColor: '#fff5f5', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', textAlign: 'center', border: '1px solid #ffcccc' }}>
-              {errorMessage}
-            </div>
-          )}
 
           <form onSubmit={handleRegister} className="register-form">
             <div className="form-group">
