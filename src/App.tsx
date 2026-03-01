@@ -19,6 +19,9 @@ import Register from './pages/Register';
 import Profile from './pages/profile_Customer/Profile';
 import ManagerPage from './pages/Page_Manager/ManagerPage';
 
+// 🔥 Import thêm các trang dành cho nhân viên
+import Operations from './pages/Page_Operations/Operations';
+import SalesSupport from './pages/Page_SalesSupport/SalesSupport';
 
 import './App.css';
 
@@ -27,9 +30,9 @@ import './App.css';
 function AppLayout() {
   const location = useLocation();
 
-  // ❗ Ẩn Header/Footer ở trang auth + manager
+  // ❗ Ẩn Header/Footer ở trang auth + manager + các trang điều hành nhân viên
   const hideLayout =
-    ['/login', '/register', '/manager'].includes(location.pathname);
+    ['/login', '/register', '/manager', '/operations', '/sales-support'].includes(location.pathname);
 
   return (
     <div className="app">
@@ -82,6 +85,25 @@ function AppLayout() {
 
           <Route path="/manager" element={<ManagerPage />} />
 
+          {/* 🔥 ROUTES CHO STAFF (Dùng ProtectedRoute để bảo mật) */}
+          <Route
+            path="/operations"
+            element={
+              <ProtectedRoute>
+                <Operations />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/sales-support"
+            element={
+              <ProtectedRoute>
+                <SalesSupport />
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
       </main>
 
@@ -107,6 +129,8 @@ function App() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             borderRadius: '8px',
             fontSize: '14px',
+            textAlign: 'center',
+            border: '1px solid #ffcccc',
           },
           success: {
             iconTheme: {

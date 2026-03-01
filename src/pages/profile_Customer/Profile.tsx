@@ -6,6 +6,8 @@ import "./Profile.css";
 import PersonalInfo from "./PersonalInfo";
 import Address_Customer from "./Address_Customer";
 import Eyes_Customer from "./Eyes_Customer"; // Mới thêm vào
+import Orders_Customer from "./Orders_Customer"; // Tích hợp Đơn hàng
+
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState("info");
@@ -118,10 +120,7 @@ const Profile: React.FC = () => {
 
           {/* Các Tab khác */}
           {activeTab === "orders" && (
-            <div className="tab-placeholder">
-              <h3>Đơn hàng của tôi</h3>
-              <p>Danh sách đơn hàng sẽ hiển thị tại đây.</p>
-            </div>
+            <Orders_Customer />
           )}
 
           {activeTab === "password" && (

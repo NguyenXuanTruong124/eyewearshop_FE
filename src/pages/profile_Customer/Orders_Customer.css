@@ -1,0 +1,190 @@
+/* Orders_Customer.css */
+:root {
+  --primary-red: #e31837; /* Màu đỏ thương hiệu EyewearHut */
+  --bg-gray: #f8f9fa;
+  --status-purple: #e0d4f7;
+  --status-green: #dcf5e8;
+}
+
+.orders-customer-page {
+  padding: 10px;
+  background: transparent;
+}
+
+.orders-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.order-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-item-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: 0.3s;
+}
+
+.order-item-card:hover {
+  box-shadow: 0 4px 15px rgba(227, 24, 55, 0.1);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.order-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-id {
+  font-weight: 800;
+  font-size: 16px;
+  color: #333;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-badge.shipped { background: var(--status-purple); color: #8e44ad; }
+.status-badge.completed { background: var(--status-green); color: #27ae60; }
+.status-badge.pending { background: #fff4e5; color: #f39c12; }
+
+.order-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-red);
+}
+
+.card-middle {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 15px;
+}
+
+.card-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-main-red {
+  background: var(--primary-red);
+  color: #fff;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-main-red:hover {
+  background: #c1122a;
+}
+
+.extra-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  border-color: var(--primary-red);
+  color: var(--primary-red);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px;
+  color: #999;
+  background: #fff;
+  border-radius: 12px;
+}
+/* Orders_Customer.css */
+:root {
+  --primary-red: #e31837; /* Đỏ logo */
+}
+
+.orders-customer-page { padding: 15px; }
+.order-cards-container { display: flex; flex-direction: column; gap: 15px; }
+
+.order-item-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.order-price { font-weight: 800; color: var(--primary-red); font-size: 18px; }
+.btn-main-red {
+  background: var(--primary-red);
+  color: white; border: none; padding: 12px;
+  border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%;
+}
+
+/* Modal Styling */
+.order-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); display: flex;
+  align-items: center; justify-content: center; z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.order-modal-content {
+  background: white; width: 90%; max-width: 500px;
+  border-radius: 16px; overflow: hidden; position: relative;
+}
+
+.modal-header-red {
+  background: var(--primary-red); color: white;
+  padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+}
+
+.close-x-white { background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+.modal-scroll-area { padding: 20px; max-height: 70vh; overflow-y: auto; }
+
+.shipping-box-mini { background: #fff5f6; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #ffe0e3; }
+.mini-product-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.mini-product-item img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
+.p-name-mini { font-weight: 600; font-size: 14px; margin: 0; }
+
+.modal-footer-summary { background: #fafafa; padding: 15px; margin-top: 15px; border-radius: 10px; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+.total-red { border-top: 1px dashed #ccc; padding-top: 10px; color: var(--primary-red); font-weight: 800; font-size: 18px; }
+
+.status-badge.completed { background: #dcf5e8; color: #27ae60; }
+.status-badge.shipped { background: #e0d4f7; color: #8e44ad; }
+.status-badge.pending { background: #fff4e5; color: #f39c12; }

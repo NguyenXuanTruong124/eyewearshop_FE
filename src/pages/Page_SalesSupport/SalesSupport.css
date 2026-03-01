@@ -1,0 +1,80 @@
+/* styles/SalesSupport.css */
+.staff-container {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.staff-header {
+  border-bottom: 2px solid #eee;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+}
+
+.staff-header h2 {
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.order-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.order-staff-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-left: 5px solid #ccc;
+  transition: transform 0.2s;
+}
+
+.order-staff-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Màu sắc theo trạng thái */
+.status-0 { border-left-color: #ff9800; } /* Pending */
+.status-1 { border-left-color: #2196f3; } /* Validated */
+.status-2 { border-left-color: #4caf50; } /* Confirmed */
+
+.card-info h4 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.card-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.card-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.btn-validate { background-color: #2196f3; color: white; }
+.btn-confirm { background-color: #4caf50; color: white; }
+.btn-process { background-color: #9c27b0; color: white; }
+.btn-cancel { background-color: #f44336; color: white; }
+
+.card-actions button:hover {
+  opacity: 0.9;
+}

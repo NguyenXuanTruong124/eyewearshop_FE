@@ -52,16 +52,22 @@ const Login: React.FC = () => {
         window.dispatchEvent(new Event('authChanged'));
 
         // 🔥 4. REDIRECT THEO ROLE
+        // Logic điều hướng dựa trên Role được lấy từ API profile
         if (role === 'Admin') {
           navigate('/admin');
         } 
         else if (role === 'Manager') {
           navigate('/manager');
-        } else if (role === 'Operations') {
+        } 
+        // Điều hướng nhân viên vận hành đến trang quản lý gia công/giao hàng
+        else if (role === 'Operations') {
           navigate('/operations');
-        } else if (role === 'SalesSupport') {
+        } 
+        // Điều hướng nhân viên hỗ trợ bán hàng đến trang xác thực đơn hàng
+        else if (role === 'SalesSupport') {
           navigate('/sales-support');
-        } else {
+        } 
+        else {
           navigate('/'); // Customer
         }
       }

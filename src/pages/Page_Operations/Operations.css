@@ -1,0 +1,68 @@
+/* styles/Operations.css */
+.staff-container {
+  padding: 30px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.staff-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.staff-table th {
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px;
+  text-align: left;
+}
+
+.staff-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Style cho các trạng thái vận hành */
+.status-3 { background: #e1bee7; color: #9c27b0; } /* Processing */
+.status-4 { background: #b3e5fc; color: #03a9f4; } /* Shipped */
+.status-5 { background: #c8e6c9; color: #2e7d32; } /* Delivered */
+
+.btn-view-rx {
+  background: #607d8b;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.table-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #34495e;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.table-actions button:hover {
+  background-color: #2c3e50;
+}
