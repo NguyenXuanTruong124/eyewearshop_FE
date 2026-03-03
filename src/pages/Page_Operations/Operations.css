@@ -1,68 +1,99 @@
-/* styles/Operations.css */
-.staff-container {
-  padding: 30px;
-  max-width: 1300px;
-  margin: 0 auto;
+/* Sử dụng lại các biến màu từ SalesSupport để đồng bộ thương hiệu */
+:root {
+  --eyewear-red: #e31837; /* Đỏ chủ đạo */
+  --eyewear-red-hover: #c1122a;
+  --bg-gray: #f8f9fa;
+  --text-dark: #333;
 }
 
-.staff-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+.staff-page-wrapper { 
+  background-color: var(--bg-gray); 
+  min-height: 100vh; 
+  font-family: 'Inter', sans-serif; 
 }
 
-.staff-table th {
-  background-color: #2c3e50;
-  color: white;
-  padding: 15px;
-  text-align: left;
+/* NAVBAR & HEADER */
+.staff-navbar-new {
+  background: #fff; 
+  padding: 15px 40px; 
+  display: flex; 
+  justify-content: space-between;
+  align-items: center; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+  position: sticky; 
+  top: 0; 
+  z-index: 100;
 }
+.brand-logo { color: var(--eyewear-red); font-weight: 800; font-size: 22px; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.staff-info-display { text-align: right; line-height: 1.2; }
+.staff-info-display p:first-child { margin: 0; font-size: 11px; color: #888; text-transform: uppercase; }
+.staff-info-display p:last-child { margin: 0; font-weight: 700; color: var(--eyewear-red); font-size: 15px; }
 
-.staff-table td {
-  padding: 15px;
-  border-bottom: 1px solid #eee;
-  vertical-align: middle;
+.btn-logout-new {
+  background: transparent; border: 1px solid #ddd; padding: 8px 18px; border-radius: 6px;
+  cursor: pointer; font-weight: 600; transition: 0.3s;
 }
+.btn-logout-new:hover { background: #fff5f5; border-color: var(--eyewear-red); color: var(--eyewear-red); }
 
-.badge {
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
+/* GRID CARDS LAYOUT */
+.staff-main-content { padding: 40px; max-width: 1400px; margin: 0 auto; }
+.order-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px; }
+
+.staff-order-card {
+  background: #fff; border-radius: 12px; padding: 20px; border-left: 5px solid #ccc;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: 0.3s ease; cursor: default;
 }
+.staff-order-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
 
-/* Style cho các trạng thái vận hành */
-.status-3 { background: #e1bee7; color: #9c27b0; } /* Processing */
-.status-4 { background: #b3e5fc; color: #03a9f4; } /* Shipped */
-.status-5 { background: #c8e6c9; color: #2e7d32; } /* Delivered */
+/* Màu sắc viền theo trạng thái vận hành */
+.status-border-2 { border-left-color: #ff9800; } /* Chờ xử lý */
+.status-border-3 { border-left-color: #9c27b0; } /* Gia công */
+.status-border-4 { border-left-color: #2196f3; } /* Đang giao */
+.status-border-5 { border-left-color: #00bcd4; } /* Đã giao */
+.status-border-7 { border-left-color: #2e7d32; } /* Hoàn tất */
 
-.btn-view-rx {
-  background: #607d8b;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+.card-header-top { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+.order-number { font-weight: 800; font-size: 17px; color: var(--text-dark); }
+.card-total-price { color: var(--eyewear-red); font-weight: 800; font-size: 19px; margin-top: 12px !important; }
+
+/* NÚT HÀNH ĐỘNG */
+.card-footer-actions { border-top: 1px solid #f5f5f5; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+.group-btns { display: flex; gap: 8px; align-items: center; }
+
+.btn-action-view { background: #f0f0f0; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.btn-action-ops { background: var(--eyewear-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px; transition: 0.2s; }
+.btn-action-ops:hover { background: var(--eyewear-red-hover); transform: translateY(-1px); }
+
+/* 🔥 STYLE MỚI: NÚT HỦY ĐƠN DẠNG CHỮ */
+.btn-action-cancel-text {
+  background-color: transparent;
+  border: 1px solid #ff5252;
+  color: #ff5252;
+  padding: 7px 14px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+  margin-left: 5px;
 }
 
-.table-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.table-actions button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  background-color: #34495e;
+.btn-action-cancel-text:hover {
+  background-color: #ff5252;
   color: white;
-  cursor: pointer;
-  transition: 0.3s;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.2);
 }
 
-.table-actions button:hover {
-  background-color: #2c3e50;
-}
+/* MODAL STYLE */
+.modal-header-red { background: var(--eyewear-red); color: white; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; }
+.btn-close-modal { background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+.total-red { color: var(--eyewear-red); font-weight: 800; }
+
+/* Label trạng thái mini */
+.status-tag-mini { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.status-tag-mini.s-2 { background: #fff8e1; color: #ff8f00; border: 1px solid #ffe082; } /* Chờ xử lý */
+.status-tag-mini.s-3 { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; } /* Gia công */
+.status-tag-mini.s-4 { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; } /* Đang giao */
+.status-tag-mini.s-5 { background: #e0f7fa; color: #00838f; border: 1px solid #b2ebf2; } /* Đã giao */

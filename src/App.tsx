@@ -83,6 +83,16 @@ function AppLayout() {
             }
           />
 
+          {/* 🔗 VNPay Result Route */}
+          <Route
+            path="/payment/vnpay/result"
+            element={
+              <ProtectedRoute>
+                <OrderSuccess />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/manager" element={<ManagerPage />} />
 
           {/* 🔥 ROUTES CHO STAFF (Dùng ProtectedRoute để bảo mật) */}
