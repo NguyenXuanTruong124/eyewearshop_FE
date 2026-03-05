@@ -1,0 +1,123 @@
+/* d:\Spring2026\EyeWearShop_FE\src\pages\styles\OrderSuccess.css */
+
+.order-success-container {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 40px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    animation: fadeInSlideUp 0.6s ease-out;
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-icon {
+    font-size: 80px;
+    color: #2ecc71;
+    margin-bottom: 24px;
+    display: inline-block;
+}
+
+.error-icon {
+    font-size: 80px;
+    color: #e74c3c;
+    margin-bottom: 24px;
+    display: inline-block;
+}
+
+.order-success-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.order-success-container p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.order-id-badge {
+    background: #f0f7ff;
+    color: #007bff;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-family: monospace;
+    font-size: 18px;
+}
+
+.payment-status-info {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.payment-status-info p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.payment-status-info strong {
+    color: #0056b3;
+}
+
+.success-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #ccc;
+}
+
+.btn-primary-success {
+    padding: 12px 32px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary-success:hover {
+    background: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.text-error {
+    color: #e74c3c !important;
+}
