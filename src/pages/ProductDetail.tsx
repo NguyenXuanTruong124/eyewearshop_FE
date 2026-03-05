@@ -71,8 +71,28 @@ const ProductDetail: React.FC = () => {
   if (loading) return <div className="loading-state">Đang tải chi tiết sản phẩm...</div>;
   if (!product) return <div className="error-state">Sản phẩm không tồn tại hoặc đã bị xóa.</div>;
 
-  const availableStock = (selectedVariant?.stockQuantity || 0) - (selectedVariant?.preOrderQuantity || 0);
-  const isAvailable = availableStock > 0;
+  const stockQty = selectedVariant?.stockQuantity || 0;
+  const preOrderQty = selectedVariant?.preOrderQuantity || 0;
+
+  let statusText = "Hết hàng";
+  let statusClass = "out-of-stock";
+  let canBuy = false;
+
+  if (stockQty > 0) {
+    statusText = `Còn hàng (Sẵn có: ${stockQty})`;
+    statusClass = "in-stock";
+    canBuy = true;
+  } else if (preOrderQty > 0) {
+    statusText = `Có thể đặt hàng (Pre-order: ${preOrderQty})`;
+    statusClass = "pre-order";
+    canBuy = true;
+  } else {
+    statusText = "Hết hàng";
+    statusClass = "out-of-stock";
+    canBuy = false;
+  }
+
+  const maxAvailable = stockQty > 0 ? stockQty : preOrderQty;
 
   return (
     <div className="product-detail-page">
@@ -134,18 +154,18 @@ const ProductDetail: React.FC = () => {
                   type="button"
                   className="qty-btn"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={!isAvailable}
+                  disabled={!canBuy}
                 >-</button>
-                <input className="qty-input" value={isAvailable ? quantity : 0} readOnly />
+                <input className="qty-input" value={canBuy ? quantity : 0} readOnly />
                 <button
                   type="button"
                   className="qty-btn"
                   onClick={() => setQuantity(quantity + 1)}
-                  disabled={!isAvailable || quantity >= availableStock}
+                  disabled={!canBuy || quantity >= maxAvailable}
                 >+</button>
               </div>
-              <span className={`stock-badge ${isAvailable ? 'in-stock' : 'out-of-stock'}`}>
-                {isAvailable ? `Còn hàng (Sẵn có: ${availableStock})` : 'Hết hàng'}
+              <span className={`stock-badge ${statusClass}`}>
+                {statusText}
               </span>
             </div>
           </div>
@@ -154,7 +174,7 @@ const ProductDetail: React.FC = () => {
             <button
               className="add-cart-btn"
               onClick={handleAddToCart}
-              disabled={!isAvailable}
+              disabled={!canBuy}
             >
               🛒 Thêm vào giỏ hàng
             </button>

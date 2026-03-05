@@ -4,10 +4,10 @@ import toast from 'react-hot-toast';
 import './SalesSupport.css';
 
 const SalesSupport: React.FC = () => {
-  const [orders, setOrders] = useState<any[]>([]); 
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const staffName = localStorage.getItem('fullName') || 'Nhân viên';
-  
+
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -117,9 +117,9 @@ const SalesSupport: React.FC = () => {
                     <span className="order-number">#{order.orderNumber || order.orderId}</span>
                     <span className={`status-tag-mini s-${order.status}`}>{status.text}</span>
                   </div>
-                  
+
                   <div className="card-body-info" onClick={() => handleViewDetail(order.orderId)}>
-                    <p><strong>👤 Khách hàng:</strong> {order.recipientName || 'N/A'}</p>
+                    <p><strong>👤 Khách hàng:</strong> {order.customer?.fullName || order.shippingInfo?.recipientName || 'N/A'}</p>
                     <p><strong>📅 Ngày đặt:</strong> {new Date(order.orderDate || order.createdAt).toLocaleDateString('vi-VN')}</p>
                     <p className="card-total-price">{(order.totalAmount || 0).toLocaleString()}đ</p>
                   </div>
@@ -128,8 +128,8 @@ const SalesSupport: React.FC = () => {
                     <button onClick={() => handleViewDetail(order.orderId)} className="btn-action-view">👁️ Chi tiết</button>
                     <div className="group-btns">
                       {order.status === 0 && <button onClick={() => handleUpdateStatus(order.orderId, 1)} className="btn-action-next">Xác nhận</button>}
-                      {order.status === 1 && <button onClick={() => handleUpdateStatus(order.orderId, 2)} className="btn-action-ops">Chuyển OPS</button>}     
-                      
+                      {order.status === 1 && <button onClick={() => handleUpdateStatus(order.orderId, 2)} className="btn-action-ops">Chuyển OPS</button>}
+
                       {order.status < 6 && (
                         <button onClick={() => handleUpdateStatus(order.orderId, 6)} className="btn-action-cancel-text">Hủy đơn</button>
                       )}
@@ -151,7 +151,7 @@ const SalesSupport: React.FC = () => {
               <h3>Chi tiết Đơn hàng #{selectedOrder.orderNumber}</h3>
               <button className="btn-close-modal" onClick={() => setShowModal(false)}>&times;</button>
             </div>
-            
+
             <div className="modal-scroll-body">
               <div className="modal-info-section">
                 <h4>📍 Thông tin giao hàng</h4>
@@ -162,9 +162,37 @@ const SalesSupport: React.FC = () => {
                   <p><strong>Địa chỉ:</strong> {selectedOrder.shippingInfo?.addressLine}, {selectedOrder.shippingInfo?.district}, {selectedOrder.shippingInfo?.city}</p>
                 </div>
               </div>
-              
+
               <hr className="modal-divider" />
-              
+
+              {selectedOrder.prescription && (
+                <>
+                  <div className="modal-prescription-section">
+                    <h4>👁️ Thông số mắt</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                      <div>
+                        <strong style={{ color: '#d32f2f' }}>Mắt phải (OD)</strong>
+                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.rightSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.rightCylinder}</p>
+                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.rightAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.rightAdd}</p>
+                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.rightPD}</p>
+                      </div>
+                      <div>
+                        <strong style={{ color: '#d32f2f' }}>Mắt trái (OS)</strong>
+                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.leftSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.leftCylinder}</p>
+                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.leftAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.leftAdd}</p>
+                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.leftPD}</p>
+                      </div>
+                      {selectedOrder.prescription.notes && (
+                        <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
+                          <strong>Ghi chú:</strong> {selectedOrder.prescription.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <hr className="modal-divider" />
+                </>
+              )}
+
               <div className="modal-products-section">
                 <h4>📦 Sản phẩm ({selectedOrder.items?.length})</h4>
                 <div className="product-mini-list">
@@ -179,7 +207,7 @@ const SalesSupport: React.FC = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="modal-footer-total-box">
                 <div className="modal-total-row">
                   <span>Tổng cộng:</span>

@@ -64,7 +64,7 @@ const Operations: React.FC = () => {
 
   const updateProgress = async (id: number, nextStatus: number) => {
     const actionName = nextStatus === 6 ? "Hủy đơn" : "Cập nhật";
-    
+
     if (nextStatus === 6 && !window.confirm("Bạn có chắc chắn muốn HỦY đơn hàng này không?")) {
       return;
     }
@@ -128,9 +128,9 @@ const Operations: React.FC = () => {
                     <span className="order-number">#{order.orderNumber || order.orderId}</span>
                     <span className={`status-tag-mini s-${order.status}`}>{status.text}</span>
                   </div>
-                  
+
                   <div className="card-body-info" onClick={() => handleViewDetail(order.orderId)}>
-                    <p><strong>👤 Khách:</strong> {order.recipientName}</p>
+                    <p><strong>👤 Khách:</strong> {order.customer?.fullName || order.shippingInfo?.recipientName || 'N/A'}</p>
                     <p><strong>📅 Cập nhật:</strong> {new Date(order.updatedAt || order.createdAt).toLocaleDateString()}</p>
                     <p className="card-total-price">{(order.totalAmount || 0).toLocaleString()}đ</p>
                   </div>
@@ -142,10 +142,10 @@ const Operations: React.FC = () => {
                       {order.status === 3 && <button onClick={() => updateProgress(order.orderId, 4)} className="btn-action-ops">Giao hàng</button>}
                       {order.status === 4 && <button onClick={() => updateProgress(order.orderId, 5)} className="btn-action-ops">Đã giao</button>}
                       {order.status === 5 && <button onClick={() => updateProgress(order.orderId, 7)} className="btn-action-processing">Hoàn tất</button>}
-                      
+
                       {/* 🔥 NÚT HỦY ĐƠN VỚI CHỮ RÕ RÀNG */}
-                      <button 
-                        onClick={() => updateProgress(order.orderId, 6)} 
+                      <button
+                        onClick={() => updateProgress(order.orderId, 6)}
                         className="btn-action-cancel-text"
                       >
                         Hủy đơn
@@ -178,6 +178,35 @@ const Operations: React.FC = () => {
                 </div>
               </div>
               <hr className="modal-divider" />
+
+              {selectedOrder.prescription && (
+                <>
+                  <div className="modal-prescription-section">
+                    <h4>👁️ Thông số mắt</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                      <div>
+                        <strong style={{ color: '#d32f2f' }}>Mắt phải (OD)</strong>
+                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.rightSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.rightCylinder}</p>
+                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.rightAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.rightAdd}</p>
+                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.rightPD}</p>
+                      </div>
+                      <div>
+                        <strong style={{ color: '#d32f2f' }}>Mắt trái (OS)</strong>
+                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.leftSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.leftCylinder}</p>
+                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.leftAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.leftAdd}</p>
+                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.leftPD}</p>
+                      </div>
+                      {selectedOrder.prescription.notes && (
+                        <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
+                          <strong>Ghi chú:</strong> {selectedOrder.prescription.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <hr className="modal-divider" />
+                </>
+              )}
+
               <div className="modal-products-section">
                 <h4>📦 Sản phẩm</h4>
                 {selectedOrder.items?.map((item: any) => (

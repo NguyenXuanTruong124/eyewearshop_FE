@@ -30,9 +30,9 @@ import './App.css';
 function AppLayout() {
   const location = useLocation();
 
-  // ❗ Ẩn Header/Footer ở trang auth + manager + các trang điều hành nhân viên
+  // ❗ Ẩn Header/Footer ở trang manager + các trang điều hành nhân viên
   const hideLayout =
-    ['/login', '/register', '/manager', '/operations', '/sales-support'].includes(location.pathname);
+    ['/manager', '/operations', '/sales-support'].includes(location.pathname);
 
   return (
     <div className="app">

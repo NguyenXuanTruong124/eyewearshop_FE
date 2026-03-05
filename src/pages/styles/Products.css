@@ -1,17 +1,19 @@
 /* Container chính của trang sản phẩm */
 .products-page {
   width: 100%;
-  max-width: 1600px; /* Mở rộng tối đa để layout không bị dồn cục bộ */
+  max-width: 1600px;
+  /* Mở rộng tối đa để layout không bị dồn cục bộ */
   margin: 0 auto;
   padding: 40px;
   display: flex;
-  gap: 40px; /* Khoảng cách giữa Sidebar và Nội dung chính */
+  gap: 40px;
+  /* Khoảng cách giữa Sidebar và Nội dung chính */
   box-sizing: border-box;
 }
 
 /* Sidebar bộ lọc - Cố định độ rộng để không bị co giãn */
 .sidebar-filter {
-  flex: 0 0 280px; 
+  flex: 0 0 280px;
   background: #fff;
   padding: 20px;
   border-radius: 12px;
@@ -32,7 +34,8 @@
 
 /* Nội dung chính: Lưới sản phẩm */
 .products-content {
-  flex: 1; /* Tự động lấp đầy phần không gian còn lại */
+  flex: 1;
+  /* Tự động lấp đầy phần không gian còn lại */
 }
 
 .products-header {
@@ -54,7 +57,7 @@
 .product-grid-main {
   display: grid;
   /* Tự động tính toán số cột dựa trên chiều rộng màn hình */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 30px;
 }
 
@@ -71,23 +74,54 @@
 
 .product-card-item:hover {
   transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .img-wrapper {
   width: 100%;
-  aspect-ratio: 3/4; /* Giữ tỉ lệ ảnh đồng nhất */
+  aspect-ratio: 3/4;
+  /* Giữ tỉ lệ ảnh đồng nhất */
   background: #f9f9f9;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  /* Thêm position relative cho absolute badge */
+}
+
+/* Status Badges */
+.status-badge-mini {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  z-index: 2;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.in-stock-badge {
+  background-color: #28a745;
+}
+
+.pre-order-badge {
+  background-color: #f39c12;
+}
+
+.out-of-stock-badge {
+  background-color: #dc3545;
 }
 
 .img-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Đảm bảo kính không bị méo */
+  object-fit: contain;
+  /* Đảm bảo kính không bị méo */
   padding: 20px;
 }
 
@@ -110,7 +144,8 @@
   font-weight: 600;
   margin: 8px 0;
   color: #333;
-  min-height: 44px; /* Giữ tiêu đề thẳng hàng */
+  min-height: 44px;
+  /* Giữ tiêu đề thẳng hàng */
 }
 
 .price-container {
@@ -155,7 +190,7 @@
     flex-direction: column;
     padding: 20px;
   }
-  
+
   .sidebar-filter {
     flex: none;
     width: 100%;

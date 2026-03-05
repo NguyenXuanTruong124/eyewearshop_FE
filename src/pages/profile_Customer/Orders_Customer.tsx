@@ -31,7 +31,7 @@ const Orders_Customer: React.FC = () => {
     try {
       toast.loading("Đang tải chi tiết...", { id: 'loading-detail' });
       const res = await axiosClient.get(`/orders/${orderId}`);
-      
+
       if (res.data) {
         setSelectedOrder(res.data);
         setShowModal(true); // Chỉ mở modal khi đã có dữ liệu
@@ -52,6 +52,34 @@ const Orders_Customer: React.FC = () => {
       6: { text: 'Đã hủy', class: 'cancelled' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
+  };
+
+  const handleRepay = async (order: any) => {
+    try {
+      toast.loading("Đang tạo link thanh toán...", { id: 'payment' });
+      const paymentPayload = {
+        orderId: order.orderId,
+        paymentMethod: 'VNPay',
+        paymentType: 'VNPay',
+        amount: order.totalAmount || 0,
+        note: "Thanh toán lại đơn hàng " + order.orderNumber
+      };
+      const payRes = await axiosClient.post('/payments', paymentPayload);
+      const vnpayUrl = payRes.data.paymentUrl || payRes.data.url || payRes.data.redirectUrl || (payRes.data.data && payRes.data.data.paymentUrl);
+      if (vnpayUrl) {
+        window.location.href = vnpayUrl;
+      } else {
+        toast.dismiss('payment');
+        toast.error("Không tạo được link thanh toán VNPay");
+      }
+    } catch (e: any) {
+      toast.dismiss('payment');
+      toast.error(e.response?.data?.message || "Lỗi tạo thanh toán");
+    }
+  };
+
+  const isOrderPaid = (order: any) => {
+    return order.paymentStatus === 'Paid' || order.paymentStatus === 1 || order.paymentStatus === 'Đã thanh toán' || order.isPaid === true;
   };
 
   if (loading) return <div className="orders-loading">Đang tải đơn hàng...</div>;
@@ -80,8 +108,19 @@ const Orders_Customer: React.FC = () => {
                 <div className="card-middle">
                   <span className="order-date">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
                   <span className="item-count">Mã đơn: {order.orderNumber}</span>
+                  <span className="item-count">
+                    Thanh toán:{' '}
+                    <strong style={{ color: isOrderPaid(order) ? '#2ecc71' : '#e74c3c' }}>
+                      {isOrderPaid(order) ? 'Đã TT' : 'Chưa TT'}
+                    </strong>
+                  </span>
                 </div>
                 <div className="card-bottom">
+                  {(!isOrderPaid(order) && order.status !== 6 && order.status !== 7) && (
+                    <button className="btn-secondary" onClick={() => handleRepay(order)}>
+                      Thanh toán lại
+                    </button>
+                  )}
                   <button className="btn-main-red" onClick={() => handleViewDetail(order.orderId)}>
                     Xem chi tiết
                   </button>
@@ -102,7 +141,7 @@ const Orders_Customer: React.FC = () => {
               <h4>Chi tiết đơn hàng #{selectedOrder.orderNumber}</h4>
               <button className="close-x-white" onClick={() => setShowModal(false)}>&times;</button>
             </div>
-            
+
             <div className="modal-scroll-area">
               <div className="modal-section">
                 <p className={`status-text ${getStatusInfo(selectedOrder.status).class}`}>
@@ -114,6 +153,31 @@ const Orders_Customer: React.FC = () => {
                   <p><strong>🏠 Địa chỉ:</strong> {selectedOrder.shippingInfo?.addressLine}, {selectedOrder.shippingInfo?.district}, {selectedOrder.shippingInfo?.city}</p>
                 </div>
               </div>
+
+              {selectedOrder.prescription && (
+                <div className="modal-section">
+                  <h5>👁️ Thông số mắt</h5>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', background: '#f5f5f5', padding: '15px', borderRadius: '8px' }}>
+                    <div>
+                      <strong style={{ color: '#d32f2f' }}>Mắt phải (OD)</strong>
+                      <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.rightSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.rightCylinder}</p>
+                      <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.rightAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.rightAdd}</p>
+                      <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.rightPD}</p>
+                    </div>
+                    <div>
+                      <strong style={{ color: '#d32f2f' }}>Mắt trái (OS)</strong>
+                      <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.leftSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.leftCylinder}</p>
+                      <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.leftAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.leftAdd}</p>
+                      <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.leftPD}</p>
+                    </div>
+                    {selectedOrder.prescription.notes && (
+                      <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
+                        <strong>Ghi chú:</strong> {selectedOrder.prescription.notes}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="modal-section">
                 <h5>📦 Sản phẩm</h5>

@@ -10,6 +10,11 @@ const Header: React.FC = () => {
   const [cartCount, setCartCount] = useState<number>(0);
 
   const fetchCartCount = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setCartCount(0);
+      return;
+    }
     try {
       const response = await axiosClient.get('/cart');
 

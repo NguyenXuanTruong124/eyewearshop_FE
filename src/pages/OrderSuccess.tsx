@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import axiosClient from '../API_BE/axiosClient';
 import './styles/OrderSuccess.css';
 
 const OrderSuccess: React.FC = () => {
@@ -16,6 +17,19 @@ const OrderSuccess: React.FC = () => {
   const vnpTransactionNo = searchParams.get('vnp_TransactionNo');
 
   const [isSuccess, setIsSuccess] = useState<boolean>(true);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (orderId) {
+      axiosClient.get(`/orders/${orderId}`)
+        .then(res => {
+          if (res.data && res.data.orderNumber) {
+            setOrderNumber(res.data.orderNumber);
+          }
+        })
+        .catch(err => console.error('Lỗi lấy thông tin đơn hàng', err));
+    }
+  }, [orderId]);
 
   useEffect(() => {
     // 🏦 Kiểm tra kết quả từ VNPay hoặc từ Backend redirect
@@ -60,7 +74,7 @@ const OrderSuccess: React.FC = () => {
             Đơn hàng của bạn đã được tiếp nhận và đang xử lý.
           </p>
           <div className="payment-status-info">
-            <p>Mã đơn hàng: <span className="order-id-badge">{orderId || "N/A"}</span></p>
+            <p>Mã đơn hàng: <span className="order-id-badge">{orderNumber || orderId || "N/A"}</span></p>
             {vnpResponseCode === '00' && (
               <>
                 <p>Số tiền: <strong>{formattedAmount}đ</strong></p>
@@ -88,7 +102,7 @@ const OrderSuccess: React.FC = () => {
             Mã lỗi VNPay: <strong>{vnpResponseCode}</strong>
           </p>
           <div className="payment-status-info">
-            <p>Mã đơn hàng: <span className="order-id-badge">{orderId || "N/A"}</span></p>
+            <p>Mã đơn hàng: <span className="order-id-badge">{orderNumber || orderId || "N/A"}</span></p>
             <p className="text-error">Giao dịch không thành công. Vui lòng thử lại sau hoặc chọn phương thức thanh toán khác.</p>
           </div>
         </>

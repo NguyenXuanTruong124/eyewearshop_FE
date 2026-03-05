@@ -80,8 +80,8 @@ const Products: React.FC = () => {
           <ul className="filter-list">
             {categories.map((cate: any) => (
               <li key={cate.categoryId} className="filter-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={selectedCategory === cate.categoryId}
                   onChange={() => {
                     const id = selectedCategory === cate.categoryId ? null : cate.categoryId;
@@ -101,8 +101,8 @@ const Products: React.FC = () => {
           <ul className="filter-list">
             {brands.map((brand: any) => (
               <li key={brand.brandId} className="filter-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={selectedBrand === brand.brandId}
                   onChange={() => {
                     const id = selectedBrand === brand.brandId ? null : brand.brandId;
@@ -139,7 +139,7 @@ const Products: React.FC = () => {
       <main className="products-content">
         <div className="products-header">
           <h2>Sản phẩm</h2>
-          <p style={{color: '#888', fontSize: '14px'}}>
+          <p style={{ color: '#888', fontSize: '14px' }}>
             Tìm thấy <strong>{productData.length}</strong> sản phẩm
           </p>
         </div>
@@ -150,27 +150,34 @@ const Products: React.FC = () => {
           <div className="product-grid-main">
             {productData.map((item: any) => (
               <div key={item.productId} className="product-card-item">
-                <div 
-                  className="img-wrapper" 
+                <div
+                  className="img-wrapper"
                   onClick={() => navigate(`/product/${item.productId}`)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <img 
-                    src={item.primaryImageUrl} 
-                    alt={item.productName} 
-                    onError={(e: any) => e.target.src = "https://placehold.co/400x600?text=EyewearHut"} 
+                  {item.inStock ? (
+                    <span className="status-badge-mini in-stock-badge">Còn hàng</span>
+                  ) : item.preOrderAvailable ? (
+                    <span className="status-badge-mini pre-order-badge">Có thể đặt hàng</span>
+                  ) : (
+                    <span className="status-badge-mini out-of-stock-badge">Hết hàng</span>
+                  )}
+                  <img
+                    src={item.primaryImageUrl}
+                    alt={item.productName}
+                    onError={(e: any) => e.target.src = "https://placehold.co/400x600?text=EyewearHut"}
                   />
                 </div>
                 <div className="info-wrapper">
                   <p className="brand-name">{item.brandName || "EYEWEARHUT"}</p>
                   <h4 className="product-name">{item.productName}</h4>
                   <div className="price-container">
-                    <span className="current-p">{formatPrice(item.basePrice)}</span>
+                    <span className="current-p">{formatPrice(item.minVariantPrice || item.basePrice)}</span>
                   </div>
                   <div className="product-card-btns">
                     {/* THAY ĐỔI: Gộp thành một nút "Xem chi tiết" duy nhất */}
-                    <button 
-                      className="btn-full-view" 
+                    <button
+                      className="btn-full-view"
                       onClick={() => navigate(`/product/${item.productId}`)}
                     >
                       Xem chi tiết
