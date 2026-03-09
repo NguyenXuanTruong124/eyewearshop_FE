@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosClient from "../../API_BE/axiosClient";
-import "./UserManager.css"; 
+import "./UserManager.css";
 
 interface UserManagerProps {
   triggerToast: (msg: string) => void;
@@ -16,12 +16,16 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
 
+  // State hỗ trợ đổi mật khẩu
+  const [resettingUserId, setResettingUserId] = useState<number | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+
   // Giá trị khởi tạo mặc định
   const initialForm = {
-    email: "", 
-    password: "", 
-    fullName: "", 
-    phoneNumber: "", 
+    email: "",
+    password: "",
+    fullName: "",
+    phoneNumber: "",
     gender: null as string | null,
     dateOfBirth: null as string | null,
     roleId: 2, // Mặc định là SalesSupport khi tạo mới nhân viên
@@ -33,12 +37,10 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [staffRes, customerRes] = await Promise.all([
-        axiosClient.get("/manager/users/staff?page=1&pageSize=20"),
-        axiosClient.get("/manager/users/customers?page=1&pageSize=20")
-      ]);
-      setStaffList(staffRes.data?.items || []);
-      setCustomerList(customerRes.data?.items || []);
+      const res = await axiosClient.get("/manager/users");
+      const allUsers = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      setStaffList(allUsers.filter((u: any) => u.role !== "Customer"));
+      setCustomerList(allUsers.filter((u: any) => u.role === "Customer"));
     } catch (err) {
       triggerToast("Không thể tải danh sách người dùng");
     } finally {
@@ -68,7 +70,7 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
         phoneNumber: user.phoneNumber || "",
         gender: user.gender,
         dateOfBirth: user.dateOfBirth,
-        roleId: user.roleId || (user.role === "Customer" ? 1 : 4), 
+        roleId: user.roleId || (user.role === "Customer" ? 1 : 4),
         status: user.status
       });
       setIsReadOnly(readOnly);
@@ -78,14 +80,33 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
     }
   };
 
-  const handleToggleStatus = async (userId: number, currentStatus: number) => {
+  const handleToggleStatus = async (user: any) => {
     try {
-      const newStatus = currentStatus === 1 ? 0 : 1;
-      await axiosClient.patch(`/manager/users/${userId}/status`, { status: newStatus });
+      const newStatus = user.status === 1 ? 0 : 1;
+      await axiosClient.patch(`/manager/users/${user.userId}/status`, { status: newStatus });
       triggerToast("Cập nhật trạng thái thành công!");
       fetchData();
     } catch (err) {
       triggerToast("Lỗi khi thay đổi trạng thái");
+    }
+  };
+
+  const handleOpenResetModal = (userId: number) => {
+    setResettingUserId(userId);
+    setNewPassword("");
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resettingUserId) return;
+    try {
+      await axiosClient.post(`/manager/users/${resettingUserId}/reset-password`, {
+        newPassword: newPassword
+      });
+      triggerToast("Cáp nhật mật khẩu mới thành công!");
+      setResettingUserId(null); // Đóng modal
+    } catch (err: any) {
+      triggerToast(err.response?.data?.message || "Không thể reset mật khẩu");
     }
   };
 
@@ -96,15 +117,25 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
     try {
       if (editingUser) {
         await axiosClient.put(`/manager/users/${editingUser.userId}`, {
+          email: formData.email,
           fullName: formData.fullName,
           phoneNumber: formData.phoneNumber,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : null,
           roleId: Number(formData.roleId),
           status: Number(formData.status)
         });
         triggerToast("Cập nhật tài khoản thành công!");
       } else {
-        // 🔥 Tạo mới nhân viên
-        await axiosClient.post("/manager/users/staff", formData);
+        await axiosClient.post("/manager/users/staff", {
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : null,
+          roleId: Number(formData.roleId)
+        });
         triggerToast("Thêm nhân viên thành công!");
       }
       setShowModal(false);
@@ -163,14 +194,15 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
                   <td>{user.email}</td>
                   <td>{user.phoneNumber || "N/A"}</td>
                   <td>
-                    <span className={`status-tag ${user.status === 1 ? "active" : "inactive"}`} style={{cursor: "pointer"}} onClick={() => handleToggleStatus(user.userId, user.status)}>
+                    <span className={`status-tag ${user.status === 1 ? "active" : "inactive"}`} style={{ cursor: "pointer" }} onClick={() => handleToggleStatus(user)}>
                       {user.status === 1 ? "Hoạt động" : "Tạm khóa"}
                     </span>
                   </td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn-icon view-btn" onClick={() => handleOpenModal(user.userId, true)}>👁️</button>
-                      <button className="btn-icon edit-btn" onClick={() => handleOpenModal(user.userId, false)}>📝</button>
+                      <button title="Xem chi tiết" className="btn-icon view-btn" onClick={() => handleOpenModal(user.userId, true)}>👁️</button>
+                      <button title="Chỉnh sửa thông tin" className="btn-icon edit-btn" onClick={() => handleOpenModal(user.userId, false)}>📝</button>
+                      <button title="Đặt lại mật khẩu" className="btn-icon reset-btn" onClick={() => handleOpenResetModal(user.userId)} style={{ background: '#fff9c4', color: '#f57f17' }}>🔑</button>
                     </div>
                   </td>
                 </tr>
@@ -189,12 +221,12 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Họ và tên</label>
-                <input 
-                  disabled={isReadOnly} 
-                  value={formData.fullName} 
-                  onChange={e => setFormData({...formData, fullName: e.target.value})} 
-                  className={isReadOnly ? "input-readonly" : ""} 
-                  required 
+                <input
+                  disabled={isReadOnly}
+                  value={formData.fullName}
+                  onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                  className={isReadOnly ? "input-readonly" : ""}
+                  required
                   placeholder="Nhập họ và tên..."
                 />
               </div>
@@ -203,11 +235,11 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
                 <div className="form-group">
                   <label>Email đăng nhập</label>
                   {/* 🔥 SỬA: Chỉ khóa email khi đang Edit hoặc Xem. Khi tạo mới (không có editingUser) thì cho nhập */}
-                  <input 
-                    disabled={isReadOnly || !!editingUser} 
-                    value={formData.email} 
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                    className={(isReadOnly || !!editingUser) ? "input-readonly" : ""} 
+                  <input
+                    disabled={isReadOnly || !!editingUser}
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    className={(isReadOnly || !!editingUser) ? "input-readonly" : ""}
                     required
                     type="email"
                     placeholder="example@gmail.com"
@@ -215,12 +247,38 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
                 </div>
                 <div className="form-group">
                   <label>Số điện thoại</label>
-                  <input 
-                    disabled={isReadOnly} 
-                    value={formData.phoneNumber} 
-                    onChange={e => setFormData({...formData, phoneNumber: e.target.value})} 
-                    className={isReadOnly ? "input-readonly" : ""} 
+                  <input
+                    disabled={isReadOnly}
+                    value={formData.phoneNumber}
+                    onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    className={isReadOnly ? "input-readonly" : ""}
                     placeholder="0123456789"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Giới tính</label>
+                  <select
+                    disabled={isReadOnly}
+                    value={formData.gender || ""}
+                    onChange={e => setFormData({ ...formData, gender: e.target.value })}
+                  >
+                    <option value="">Chưa cập nhật</option>
+                    <option value="Male">Nam</option>
+                    <option value="Female">Nữ</option>
+                    <option value="Other">Khác</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Ngày sinh</label>
+                  <input
+                    type="date"
+                    disabled={isReadOnly}
+                    value={formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : ""}
+                    onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    className={isReadOnly ? "input-readonly" : ""}
                   />
                 </div>
               </div>
@@ -229,11 +287,11 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
               {!isReadOnly && !editingUser && (
                 <div className="form-group">
                   <label>Mật khẩu</label>
-                  <input 
-                    type="password" 
-                    value={formData.password} 
-                    onChange={e => setFormData({...formData, password: e.target.value})} 
-                    required 
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    required
                     placeholder="Nhập mật khẩu cho tài khoản mới..."
                   />
                 </div>
@@ -242,7 +300,7 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Vai trò</label>
-                  <select disabled={isReadOnly} value={formData.roleId} onChange={e => setFormData({...formData, roleId: Number(e.target.value)})}>
+                  <select disabled={isReadOnly} value={formData.roleId} onChange={e => setFormData({ ...formData, roleId: Number(e.target.value) })}>
                     <option value={1}>Customer</option>
                     <option value={2}>SalesSupport</option>
                     <option value={3}>Operations Staff</option>
@@ -251,7 +309,7 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
                 </div>
                 <div className="form-group">
                   <label>Trạng thái</label>
-                  <select disabled={isReadOnly} value={formData.status} onChange={e => setFormData({...formData, status: Number(e.target.value)})}>
+                  <select disabled={isReadOnly} value={formData.status} onChange={e => setFormData({ ...formData, status: Number(e.target.value) })}>
                     <option value={1}>Hoạt động</option>
                     <option value={0}>Tạm khóa</option>
                   </select>
@@ -261,6 +319,31 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
               <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>{isReadOnly ? "Đóng" : "Hủy"}</button>
                 {!isReadOnly && <button type="submit" className="btn-confirm">Xác nhận</button>}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Đặt lại Mật Khẩu */}
+      {resettingUserId && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <h3 style={{ marginBottom: '15px' }}>Đặt lại mật khẩu</h3>
+            <form onSubmit={handleResetPassword}>
+              <div className="form-group">
+                <label>Mật khẩu mới</label>
+                <input
+                  type="text"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu bảo mật mới..."
+                />
+              </div>
+              <div className="modal-footer" style={{ marginTop: '20px' }}>
+                <button type="button" className="btn-cancel" onClick={() => setResettingUserId(null)}>Hủy</button>
+                <button type="submit" className="btn-confirm" style={{ background: '#f57f17', border: 'none' }}>Đổi mật khẩu</button>
               </div>
             </form>
           </div>

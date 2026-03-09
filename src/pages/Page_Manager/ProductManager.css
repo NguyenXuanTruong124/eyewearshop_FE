@@ -1,103 +1,316 @@
-/* Container chính của Modal */
-.product-modal {
-  max-width: 500px !important; /* Thu gọn chiều rộng để tập trung */
-  padding: 30px !important;
-  border-radius: 24px !important; /* Bo góc mềm mại hơn */
-  background: #ffffff;
+.product-manager-wrapper {
+  padding: 24px;
 }
 
-.modal-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1a202c;
+.manager-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
 }
 
-/* Tối ưu hóa các nhóm nhập liệu (Form Groups) */
-.form-group {
-  margin-bottom: 20px;
+/* Modal Lớn Chuyên Nghiệp */
+.product-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.product-modal-content {
+  background: #ffffff;
+  width: 900px;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pm-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.pm-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.pm-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.pm-close-btn:hover {
+  color: #ef4444;
+}
+
+.pm-tabs {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 24px;
+  background: #fff;
+}
+
+.pm-tab-btn {
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.pm-tab-btn.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+.pm-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.pm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.pm-form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-group label {
+.pm-form-group.full-width {
+  grid-column: span 2;
+}
+
+.pm-form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #4a5568; /* Màu xám đậm chuyên nghiệp */
+  color: #334155;
 }
 
-/* Tối ưu Input và Textarea */
-.form-group input, 
-.form-group textarea {
-  width: 100%;
-  padding: 14px 18px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px; /* Bo góc hiện đại */
-  font-size: 15px;
-  color: #2d3748;
-  background-color: #fcfdfe;
-  transition: all 0.2s ease;
+.pm-form-group input,
+.pm-form-group textarea,
+.pm-form-group select {
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+  transition: all 0.2s;
+  color: #0f172a;
 }
 
-.form-group input:focus, 
-.form-group textarea:focus {
-  border-color: #4b0082;
-  background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(75, 0, 130, 0.05);
+.pm-form-group input:focus,
+.pm-form-group textarea:focus,
+.pm-form-group select:focus {
   outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Placeholder tinh tế */
-.form-group input::placeholder, 
-.form-group textarea::placeholder {
-  color: #a0aec0;
+.pm-form-group input:disabled,
+.pm-form-group textarea:disabled,
+.pm-form-group select:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Variant table and form layout */
+.pm-variants-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pm-variant-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.pm-variant-header {
+  padding: 16px 20px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pm-variant-add-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pm-variant-add-btn:hover {
+  background: #059669;
+}
+
+.pm-variant-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pm-variant-table th {
+  background: #f1f5f9;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.pm-variant-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #334155;
+}
+
+.pm-variant-actions .btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: #f1f5f9;
+  cursor: pointer;
+  margin-right: 8px;
   font-size: 14px;
 }
 
-/* Footer chứa nút bấm */
-.modal-footer {
-  margin-top: 10px;
+.pm-variant-actions .btn-icon.edit-btn {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.pm-variant-actions .btn-icon.edit-btn:hover {
+  background: #bae6fd;
+}
+
+.pm-modal-footer {
+  padding: 16px 24px;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  align-items: center;
+  gap: 12px;
 }
 
-/* Nút Hủy bỏ */
-.btn-close {
-  background: transparent;
+.pm-btn-cancel {
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
   border: none;
-  color: #2d3748;
   font-weight: 600;
-  font-size: 15px;
   cursor: pointer;
-  padding: 10px 15px;
 }
 
-/* Nút Xác nhận cập nhật màu xanh đậm/tím */
-.btn-submit-form {
-  background: #1a202c; /* Màu đen xanh sang trọng */
-  color: #ffffff;
-  padding: 12px 24px;
+.pm-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.pm-btn-submit {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pm-btn-submit:hover {
+  background: #2563eb;
+}
+
+/* Sub-form Editor for Variants */
+.pm-subform {
+  background: #fff;
   border-radius: 12px;
+  padding: 20px;
+  border: 1px dashed #3b82f6;
+  margin-bottom: 20px;
+}
+
+.pm-subform h4 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 600;
-  font-size: 15px;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.1s active;
 }
 
-.btn-submit-form:hover {
-  background: #2d3748;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.status-badge.active {
+  background: #dcfce7;
+  color: #166534;
 }
 
-.btn-submit-form:active {
-  transform: scale(0.98);
-}
-
-/* Phần Biến thể (Variants) ẩn đi khi Update theo yêu cầu của bạn */
-.variant-section {
-  display: none; /* Chỉ hiện khi cần quản lý màu sắc/kho nâng cao */
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #991b1b;
 }
