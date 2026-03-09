@@ -92,10 +92,10 @@ const SalesSupport: React.FC = () => {
     const config: Record<number, { text: string; class: string }> = {
       0: { text: 'Chờ xác nhận', class: 'pending' },
       1: { text: 'Đã xác nhận', class: 'validated' },
-      2: { text: 'Tiến hành', class: 'confirmed' },
-      10: { text: 'Đã sản xuất', class: 'produced' },
-      3: { text: 'Gia công OPS', class: 'processing' },
-      4: { text: 'Đang giao', class: 'shipped' },
+      2: { text: 'Chờ Xử lý OPS', class: 'confirmed' }, // Confirmed
+      10: { text: 'Gia công', class: 'processing' }, // Processed
+      3: { text: 'Đóng gói', class: 'produced' }, // Produced
+      4: { text: 'Đang giao hàng', class: 'shipped' },
       5: { text: 'Đã giao', class: 'delivered' },
       6: { text: 'Đã hủy', class: 'cancelled' },
       7: { text: 'Hoàn tất', class: 'completed' }

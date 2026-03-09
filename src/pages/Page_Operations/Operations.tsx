@@ -93,13 +93,13 @@ const Operations: React.FC = () => {
 
   const getStatusInfo = (status: number) => {
     const config: Record<number, { text: string; class: string }> = {
-      0: { text: 'Chờ Sale Xác nhận', class: 'pending' },
-      1: { text: 'Sale Đã xác nhận', class: 'validated' },
-      2: { text: 'Chờ Xử lý (OPS)', class: 'confirmed' }, // 2
-      10: { text: 'Đang gia công', class: 'produced' }, // 10
-      3: { text: 'Đóng gói', class: 'processing' }, // 3
-      4: { text: 'Đang giao hàng', class: 'shipped' }, // 4
-      5: { text: 'Đã giao hàng', class: 'delivered' }, // 5
+      0: { text: 'Chờ Xác nhận', class: 'pending' },
+      1: { text: 'Đã xác nhận', class: 'validated' },
+      2: { text: 'Chờ Xử lý OPS', class: 'confirmed' }, // Confirmed
+      10: { text: 'Gia công', class: 'processing' }, // Processed
+      3: { text: 'Đóng gói', class: 'produced' }, // Produced
+      4: { text: 'Đang giao hàng', class: 'shipped' }, // Shipped
+      5: { text: 'Đã giao hàng', class: 'delivered' }, // Delivered
       6: { text: 'Đã hủy', class: 'cancelled' },
       7: { text: 'Hoàn tất', class: 'completed' }
     };
@@ -133,16 +133,16 @@ const Operations: React.FC = () => {
 
         <div className="staff-tabs-container">
           <button className={`staff-tab-btn ${activeTab === 'AVAILABLE' ? 'active' : ''}`} onClick={() => setActiveTab('AVAILABLE')}>
-             Đơn hàng Có Sẵn
+            Đơn hàng Có Sẵn
           </button>
           <button className={`staff-tab-btn ${activeTab === 'PRESCRIPTION' ? 'active' : ''}`} onClick={() => setActiveTab('PRESCRIPTION')}>
-             Đơn có Thông Số Mắt
+            Đơn có Thông Số Mắt
           </button>
           <button className={`staff-tab-btn ${activeTab === 'PREORDER' ? 'active' : ''}`} onClick={() => setActiveTab('PREORDER')}>
-             Đơn hàng Preorder
+            Đơn hàng Preorder
           </button>
           <button className={`staff-tab-btn ${activeTab === 'PREORDER_PRESCRIPTION' ? 'active' : ''}`} onClick={() => setActiveTab('PREORDER_PRESCRIPTION')}>
-             Preorder + Thông Số
+            Preorder + Thông Số
           </button>
         </div>
 
