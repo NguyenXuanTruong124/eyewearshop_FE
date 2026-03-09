@@ -6,44 +6,54 @@ import './Operations.css';
 const Operations: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Lấy tên nhân viên từ localStorage
-  const staffName = localStorage.getItem('fullName') || 'Nhân viên';
+  const [activeTab, setActiveTab] = useState<string>('AVAILABLE');
+  const staffName = localStorage.getItem('fullName') || 'Nhân viên OPS';
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchStaffOrders = async () => {
+  const fetchOrders = async (tab: string) => {
     try {
       setLoading(true);
-      // Gọi API lấy toàn bộ đơn hàng hệ thống
-      const res = await axiosClient.get('/orders/all?page=1&pageSize=50');
+      let apiType = '';
+      if (tab === 'AVAILABLE') apiType = 'AVAILABLE';
+      else if (tab === 'PREORDER') apiType = 'PRE_ORDER';
+      else if (tab === 'PRESCRIPTION') apiType = 'PRESCRIPTION';
+      else if (tab === 'PREORDER_PRESCRIPTION') apiType = 'PRE_ORDER_PRESCRIPTION';
+
+      const res = await axiosClient.get(`/orders/all?page=1&pageSize=100&orderType=${apiType}`);
       const data = res.data?.items || [];
-      setOrders(Array.isArray(data) ? data : []);
+      let fetchedOrders = Array.isArray(data) ? data : [];
+
+      // Lọc các đơn đang ở trạng thái >= 2 và chưa Hoàn tất(7)/Hủy(6)
+      // Nếu muốn xem cả đơn hoàn tất thì gỡ filter này
+      fetchedOrders = fetchedOrders.filter(o => o.status >= 2 && o.status !== 6 && o.status !== 7);
+
+      setOrders(fetchedOrders);
     } catch (e) {
       setOrders([]);
-      toast.error("Lỗi tải danh sách vận hành");
+      toast.error("Không thể tải danh sách đơn hàng Operations");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStaffOrders();
-  }, []);
+    fetchOrders(activeTab);
+  }, [activeTab]);
 
   const handleViewDetail = async (orderId: number) => {
     try {
-      toast.loading("Đang tải dữ liệu...", { id: 'ops-detail' });
+      toast.loading("Đang tải chi tiết...", { id: 'ops-detail' });
       const res = await axiosClient.get(`/orders/staff-view/${orderId}`);
       if (res.data) {
         setSelectedOrder(res.data);
         setShowModal(true);
-        toast.dismiss('ops-detail');
       }
-    } catch (e) {
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Lỗi lấy chi tiết đơn hàng");
+    } finally {
       toast.dismiss('ops-detail');
-      toast.error("Không thể lấy chi tiết đơn hàng");
     }
   };
 
@@ -70,10 +80,12 @@ const Operations: React.FC = () => {
     }
 
     try {
-      // API cập nhật trạng thái đơn hàng
       await axiosClient.put(`/orders/${id}/status`, { newStatus: nextStatus });
       toast.success(`${actionName} thành công!`);
-      fetchStaffOrders();
+      fetchOrders(activeTab);
+      if (showModal && selectedOrder?.orderId === id) {
+        setShowModal(false);
+      }
     } catch (e) {
       toast.error(`Lỗi thao tác ${actionName.toLowerCase()}`);
     }
@@ -81,11 +93,15 @@ const Operations: React.FC = () => {
 
   const getStatusInfo = (status: number) => {
     const config: Record<number, { text: string; class: string }> = {
-      2: { text: 'CHỜ XỬ LÝ', class: 'confirmed' },
-      3: { text: 'ĐANG GIA CÔNG', class: 'processing' },
-      4: { text: 'ĐANG GIAO', class: 'shipped' },
-      5: { text: 'ĐÃ GIAO', class: 'delivered' },
-      7: { text: 'HOÀN TẤT', class: 'completed' }
+      0: { text: 'Chờ Sale Xác nhận', class: 'pending' },
+      1: { text: 'Sale Đã xác nhận', class: 'validated' },
+      2: { text: 'Chờ Xử lý (OPS)', class: 'confirmed' }, // 2
+      10: { text: 'Đang gia công', class: 'produced' }, // 10
+      3: { text: 'Đóng gói', class: 'processing' }, // 3
+      4: { text: 'Đang giao hàng', class: 'shipped' }, // 4
+      5: { text: 'Đã giao hàng', class: 'delivered' }, // 5
+      6: { text: 'Đã hủy', class: 'cancelled' },
+      7: { text: 'Hoàn tất', class: 'completed' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
   };
@@ -102,8 +118,8 @@ const Operations: React.FC = () => {
         </div>
         <div className="nav-right">
           <div className="staff-info-display">
-            <p>Xin chào,</p>
-            <p>{staffName}</p>
+            <p className="welcome-label">Xin chào,</p>
+            <p className="staff-name-text">{staffName}</p>
           </div>
           <button onClick={handleLogout} className="btn-logout-new">🚪 Đăng xuất</button>
         </div>
@@ -111,116 +127,191 @@ const Operations: React.FC = () => {
 
       <main className="staff-main-content">
         <div className="content-header">
-          <h2>Điều hành Sản xuất & Giao hàng</h2>
-          <p>Quản lý đơn hàng từ trạng thái <strong>Đã xác nhận (2)</strong> đến <strong>Hoàn tất (7)</strong>.</p>
+          <h2>Điều hành Sản xuất & Giao hàng (Operations)</h2>
+          <p>Quản lý gia công mắt kính, đóng gói và giao nhận cho từng loại đơn hàng.</p>
+        </div>
+
+        <div className="staff-tabs-container">
+          <button className={`staff-tab-btn ${activeTab === 'AVAILABLE' ? 'active' : ''}`} onClick={() => setActiveTab('AVAILABLE')}>
+             Đơn hàng Có Sẵn
+          </button>
+          <button className={`staff-tab-btn ${activeTab === 'PRESCRIPTION' ? 'active' : ''}`} onClick={() => setActiveTab('PRESCRIPTION')}>
+             Đơn có Thông Số Mắt
+          </button>
+          <button className={`staff-tab-btn ${activeTab === 'PREORDER' ? 'active' : ''}`} onClick={() => setActiveTab('PREORDER')}>
+             Đơn hàng Preorder
+          </button>
+          <button className={`staff-tab-btn ${activeTab === 'PREORDER_PRESCRIPTION' ? 'active' : ''}`} onClick={() => setActiveTab('PREORDER_PRESCRIPTION')}>
+             Preorder + Thông Số
+          </button>
         </div>
 
         <div className="order-cards-grid">
-          {/* Lọc các đơn đang xử lý (không hiện đơn đã hủy 6 hoặc hoàn tất 7) */}
-          {!Array.isArray(orders) || orders.filter(o => o.status >= 2 && o.status !== 6 && o.status !== 7).length === 0 ? (
-            <div className="empty-state-card">Hiện không có đơn hàng nào cần xử lý.</div>
-          ) : (
-            orders.filter(o => o.status >= 2 && o.status !== 6 && o.status !== 7).map(order => {
-              const status = getStatusInfo(order.status);
+          {orders.length > 0 ? (
+            orders.map(order => {
+              const statusInfo = getStatusInfo(order.status);
+              const isPreorderType = activeTab.includes('PRE_ORDER');
+              const hasPrescription = !!order.prescription;
+              const allInStock = order.items?.every((item: any) => item.inStock === true);
+
               return (
                 <div key={order.orderId} className={`staff-order-card status-border-${order.status}`}>
                   <div className="card-header-top">
                     <span className="order-number">#{order.orderNumber || order.orderId}</span>
-                    <span className={`status-tag-mini s-${order.status}`}>{status.text}</span>
+                    <span className={`status-tag-mini s-${order.status}`}>{statusInfo.text}</span>
                   </div>
 
                   <div className="card-body-info" onClick={() => handleViewDetail(order.orderId)}>
                     <p><strong>👤 Khách:</strong> {order.customer?.fullName || order.shippingInfo?.recipientName || 'N/A'}</p>
-                    <p><strong>📅 Cập nhật:</strong> {new Date(order.updatedAt || order.createdAt).toLocaleDateString()}</p>
+                    <p><strong>📅 Bắt đầu:</strong> {new Date(order.createdAt).toLocaleString('vi-VN')}</p>
                     <p className="card-total-price">{(order.totalAmount || 0).toLocaleString()}đ</p>
+
+                    {isPreorderType && (
+                      <div className={`stock-status-badge ${allInStock ? 'stock-ok' : 'stock-wait'}`}>
+                        {allInStock ? '✅ Kho đã nhập đủ hàng' : '⏳ Đang chờ hàng về kho'}
+                      </div>
+                    )}
                   </div>
 
                   <div className="card-footer-actions">
                     <button onClick={() => handleViewDetail(order.orderId)} className="btn-action-view">👁️ Chi tiết</button>
                     <div className="group-btns">
-                      {order.status === 2 && <button onClick={() => updateProgress(order.orderId, 3)} className="btn-action-ops">Gia công</button>}
-                      {order.status === 3 && <button onClick={() => updateProgress(order.orderId, 4)} className="btn-action-ops">Giao hàng</button>}
+                      {/* Xử lý cho ĐƠN CÓ THÔNG SỐ: 2 -> 10 ->  3 -> 4 -> 5 -> 7 */}
+                      {hasPrescription ? (
+                        <>
+                          {order.status === 2 && <button onClick={() => updateProgress(order.orderId, 10)} className="btn-action-ops">Gia công</button>}
+                          {order.status === 10 && <button onClick={() => updateProgress(order.orderId, 3)} className="btn-action-ops">Đóng gói</button>}
+                        </>
+                      ) : (
+                        /* Xử lý cho ĐƠN KHÔNG CÓ THÔNG SỐ: 2 ->  3 -> 4 -> 5 -> 7 */
+                        <>
+                          {order.status === 2 && <button onClick={() => updateProgress(order.orderId, 3)} className="btn-action-ops">Đóng gói</button>}
+                        </>
+                      )}
+
+                      {/* Các trạng thái chung của việc Giao hàng */}
+                      {order.status === 3 && <button onClick={() => updateProgress(order.orderId, 4)} className="btn-action-next">Giao hàng</button>}
                       {order.status === 4 && <button onClick={() => updateProgress(order.orderId, 5)} className="btn-action-ops">Đã giao</button>}
                       {order.status === 5 && <button onClick={() => updateProgress(order.orderId, 7)} className="btn-action-processing">Hoàn tất</button>}
 
-                      {/* 🔥 NÚT HỦY ĐƠN VỚI CHỮ RÕ RÀNG */}
-                      <button
-                        onClick={() => updateProgress(order.orderId, 6)}
-                        className="btn-action-cancel-text"
-                      >
-                        Hủy đơn
-                      </button>
+                      {order.status < 6 && (
+                        <button onClick={() => updateProgress(order.orderId, 6)} className="btn-action-cancel-text">Hủy đơn</button>
+                      )}
                     </div>
                   </div>
                 </div>
               );
             })
+          ) : (
+            <div className="empty-state-card">Chưa có đơn hàng nào cần xử lý trong phân loại này.</div>
           )}
         </div>
       </main>
 
-      {/* MODAL CHI TIẾT */}
       {showModal && selectedOrder && (
         <div className="order-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="order-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="order-modal-content order-modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-red">
-              <h4>Đơn hàng {selectedOrder.orderNumber}</h4>
+              <div>
+                <h3 style={{ margin: 0 }}>Đơn hàng: #{selectedOrder.orderNumber}</h3>
+                <span className="modal-subtitle">Loại: {selectedOrder.orderType} | Trạng thái: {getStatusInfo(selectedOrder.status).text}</span>
+              </div>
               <button className="btn-close-modal" onClick={() => setShowModal(false)}>&times;</button>
             </div>
-            <div className="modal-scroll-body">
-              {/* Nội dung chi tiết tương tự như cũ */}
-              <div className="modal-info-section">
-                <h4>📍 Thông tin vận chuyển</h4>
-                <div className="info-grid">
-                  <p><strong>Người nhận:</strong> {selectedOrder.shippingInfo?.recipientName}</p>
-                  <p><strong>Điện thoại:</strong> {selectedOrder.shippingInfo?.phoneNumber}</p>
-                  <p><strong>Địa chỉ:</strong> {selectedOrder.shippingInfo?.addressLine}, {selectedOrder.shippingInfo?.district}, {selectedOrder.shippingInfo?.city}</p>
+
+            <div className="modal-scroll-body modal-grid-layout">
+              {/* CỘT TRÁI: THÔNG TIN KHÁCH & GIAO HÀNG */}
+              <div className="modal-left-col">
+                <div className="modal-info-section box-shadow-card">
+                  <h4>📍 Thông tin giao hàng</h4>
+                  <div className="info-grid">
+                    <p><strong>Khách hàng:</strong> {selectedOrder.customer?.fullName || 'Khách vãng lai'}</p>
+                    <p><strong>Người nhận:</strong> {selectedOrder.shippingInfo?.recipientName}</p>
+                    <p><strong>Điện thoại:</strong> {selectedOrder.shippingInfo?.phoneNumber || selectedOrder.customer?.phoneNumber}</p>
+                    <p><strong>Email:</strong> {selectedOrder.customer?.email}</p>
+                    <p><strong>Địa chỉ:</strong> {selectedOrder.shippingInfo?.addressLine}, {selectedOrder.shippingInfo?.district}, {selectedOrder.shippingInfo?.city}</p>
+                    <p><strong>P.Thức T.Toán:</strong> {selectedOrder.payments?.[0]?.paymentType || 'COD'} ({selectedOrder.payments?.[0]?.paymentMethod})</p>
+                    <p><strong>Trạng thái:</strong> <span className={selectedOrder.paymentStatus === 1 ? 'text-success' : 'text-warning'}>
+                      {selectedOrder.paymentStatus === 1 ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                    </span></p>
+                  </div>
                 </div>
-              </div>
-              <hr className="modal-divider" />
 
-              {selectedOrder.prescription && (
-                <>
-                  <div className="modal-prescription-section">
-                    <h4>👁️ Thông số mắt</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
-                      <div>
-                        <strong style={{ color: '#d32f2f' }}>Mắt phải (OD)</strong>
-                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.rightSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.rightCylinder}</p>
-                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.rightAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.rightAdd}</p>
-                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.rightPD}</p>
+                {selectedOrder.prescription && (
+                  <div className="modal-prescription-section box-shadow-card mt-15">
+                    <h4>👁️ Thông số mắt chi tiết</h4>
+                    <div className="rx-grid">
+                      <div className="rx-col">
+                        <div className="rx-title">Mắt phải (OD)</div>
+                        <ul>
+                          <li><strong>SPH:</strong> {selectedOrder.prescription.rightSphere}</li>
+                          <li><strong>CYL:</strong> {selectedOrder.prescription.rightCylinder}</li>
+                          <li><strong>AXIS:</strong> {selectedOrder.prescription.rightAxis}</li>
+                          <li><strong>ADD:</strong> {selectedOrder.prescription.rightAdd}</li>
+                          <li><strong>PD:</strong> {selectedOrder.prescription.rightPD}</li>
+                        </ul>
                       </div>
-                      <div>
-                        <strong style={{ color: '#d32f2f' }}>Mắt trái (OS)</strong>
-                        <p style={{ margin: '5px 0' }}>SPH: {selectedOrder.prescription.leftSphere} &nbsp;|&nbsp; CYL: {selectedOrder.prescription.leftCylinder}</p>
-                        <p style={{ margin: '5px 0' }}>AXIS: {selectedOrder.prescription.leftAxis} &nbsp;|&nbsp; ADD: {selectedOrder.prescription.leftAdd}</p>
-                        <p style={{ margin: '5px 0' }}>PD: {selectedOrder.prescription.leftPD}</p>
+                      <div className="rx-col">
+                        <div className="rx-title">Mắt trái (OS)</div>
+                        <ul>
+                          <li><strong>SPH:</strong> {selectedOrder.prescription.leftSphere}</li>
+                          <li><strong>CYL:</strong> {selectedOrder.prescription.leftCylinder}</li>
+                          <li><strong>AXIS:</strong> {selectedOrder.prescription.leftAxis}</li>
+                          <li><strong>ADD:</strong> {selectedOrder.prescription.leftAdd}</li>
+                          <li><strong>PD:</strong> {selectedOrder.prescription.leftPD}</li>
+                        </ul>
                       </div>
-                      {selectedOrder.prescription.notes && (
-                        <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
-                          <strong>Ghi chú:</strong> {selectedOrder.prescription.notes}
+                    </div>
+                    {selectedOrder.prescription.notes && (
+                      <div className="rx-notes mt-15">
+                        <strong>Ghi chú (Sale):</strong> {selectedOrder.prescription.notes || 'Không có ghi chú'}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* CỘT PHẢI: SẢN PHẨM & TỔNG TIỀN */}
+              <div className="modal-right-col">
+                <div className="modal-products-section box-shadow-card">
+                  <h4>📦 Sản phẩm ({selectedOrder.items?.length})</h4>
+                  <div className="product-mini-list custom-scroll">
+                    {selectedOrder.items?.map((item: any) => (
+                      <div key={item.orderItemId} className="product-mini-item">
+                        <div className="p-mini-details">
+                          <p className="p-mini-name">{item.variant?.product?.productName || 'Sản phẩm'}</p>
+                          <p className="p-mini-meta">Màu: {item.variant?.color} | SKU: {item.variant?.product?.sku}</p>
+                          <p className="p-mini-price">
+                            {item.quantity} x {item.unitPrice?.toLocaleString()}đ
+                            {!item.inStock && <span className="p-mini-outstock"> (Hết hàng tại kho)</span>}
+                            {item.inStock && <span className="p-mini-instock"> (Có hàng sẵn)</span>}
+                          </p>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                  <hr className="modal-divider" />
-                </>
-              )}
+                </div>
 
-              <div className="modal-products-section">
-                <h4>📦 Sản phẩm</h4>
-                {selectedOrder.items?.map((item: any) => (
-                  <div key={item.orderItemId} className="product-mini-item">
-                    <img src={item.primaryImageUrl} alt="" />
-                    <div className="p-mini-details">
-                      <p className="p-name">{item.productName}</p>
-                      <p className="p-price">{item.quantity} x {item.unitPrice?.toLocaleString()}đ</p>
-                    </div>
+                <div className="modal-footer-total-box box-shadow-card mt-15">
+                  <div className="modal-total-row summary-row">
+                    <span>Tạm tính:</span>
+                    <span>{(selectedOrder.subTotal || 0).toLocaleString()}đ</span>
                   </div>
-                ))}
-              </div>
-              <div className="modal-footer-total">
-                <div className="total-row"><span>Tổng cộng:</span><span className="total-red">{(selectedOrder.totalAmount || 0).toLocaleString()}đ</span></div>
+                  <div className="modal-total-row summary-row">
+                    <span>Phí ship:</span>
+                    <span>{(selectedOrder.shippingFee || 0).toLocaleString()}đ</span>
+                  </div>
+                  {selectedOrder.discountAmount > 0 && (
+                    <div className="modal-total-row summary-row text-success">
+                      <span>Giảm giá:</span>
+                      <span>-{(selectedOrder.discountAmount || 0).toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  <div className="modal-total-row final-total mt-15" style={{ borderTop: '1px solid #eee', paddingTop: '10px' }}>
+                    <span style={{ fontWeight: 800, fontSize: '18px' }}>Tổng cộng:</span>
+                    <span className="total-price-red" style={{ fontSize: '22px', color: '#e31837', fontWeight: 'bold' }}>{(selectedOrder.totalAmount || 0).toLocaleString()}đ</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
