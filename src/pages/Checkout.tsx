@@ -143,6 +143,9 @@ const Checkout: React.FC = () => {
         toast.success("Thông tin đã được xác nhận. Order ID: " + res.data.orderId);
         console.log('🎯 [Checkout] Đã lưu Order ID thành công:', res.data.orderId);
 
+        // 🔥 Cập nhật giỏ hàng trên Header sau khi tạo đơn hàng thành công
+        window.dispatchEvent(new Event('cartUpdated'));
+
         // Chuyển sang bước thanh toán an toàn
         setStep(needsPrescription ? 3 : 2);
       } else {

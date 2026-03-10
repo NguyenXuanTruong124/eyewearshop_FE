@@ -46,6 +46,9 @@ const OrderSuccess: React.FC = () => {
       // Mặc định coi là thành công vì nếu thất bại thường BE sẽ đẩy về trang khác hoặc kèm mã lỗi
       setIsSuccess(true);
     }
+
+    // 🔥 Cập nhật lại số lượng giỏ hàng trên Header
+    window.dispatchEvent(new Event('cartUpdated'));
   }, [vnpResponseCode, orderId]);
 
   // Format số tiền (VNPay amount / 100)

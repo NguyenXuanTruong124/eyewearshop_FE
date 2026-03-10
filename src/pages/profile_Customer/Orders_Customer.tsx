@@ -48,8 +48,10 @@ const Orders_Customer: React.FC = () => {
     const config: Record<number, { text: string; class: string }> = {
       0: { text: 'Chờ xác nhận', class: 'pending' },
       4: { text: 'Đang giao', class: 'shipped' },
+      6: { text: 'Đã hủy', class: 'cancelled' },
       7: { text: 'Hoàn thành', class: 'completed' },
-      6: { text: 'Đã hủy', class: 'cancelled' }
+      8: { text: 'Chờ thanh toán', class: 'awaiting-payment' },
+      9: { text: 'Đã xóa', class: 'deleted' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
   };
@@ -80,6 +82,21 @@ const Orders_Customer: React.FC = () => {
 
   const isOrderPaid = (order: any) => {
     return order.paymentStatus === 'Paid' || order.paymentStatus === 1 || order.paymentStatus === 'Đã thanh toán' || order.isPaid === true;
+  };
+
+  const handleDeleteOrder = async (orderId: number) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) {
+      try {
+        toast.loading("Đang xóa đơn hàng...", { id: 'deleting' });
+        await axiosClient.delete(`/orders/${orderId}`);
+        toast.dismiss('deleting');
+        toast.success("Đã xóa đơn hàng thành công");
+        fetchOrders();
+      } catch (e: any) {
+        toast.dismiss('deleting');
+        toast.error("Không thể xóa đơn hàng");
+      }
+    }
   };
 
   if (loading) return <div className="orders-loading">Đang tải đơn hàng...</div>;
@@ -116,10 +133,15 @@ const Orders_Customer: React.FC = () => {
                   </span>
                 </div>
                 <div className="card-bottom">
-                  {(!isOrderPaid(order) && order.status !== 6 && order.status !== 7) && (
-                    <button className="btn-secondary" onClick={() => handleRepay(order)}>
-                      Thanh toán lại
-                    </button>
+                  {(!isOrderPaid(order) && order.status !== 6 && order.status !== 7 && order.status !== 9) && (
+                    <>
+                      <button className="btn-secondary" onClick={() => handleRepay(order)}>
+                        Thanh toán lại
+                      </button>
+                      <button className="btn-delete-order" onClick={() => handleDeleteOrder(order.orderId)}>
+                        Xóa đơn hàng
+                      </button>
+                    </>
                   )}
                   <button className="btn-main-red" onClick={() => handleViewDetail(order.orderId)}>
                     Xem chi tiết
@@ -147,10 +169,24 @@ const Orders_Customer: React.FC = () => {
                 <p className={`status-text ${getStatusInfo(selectedOrder.status).class}`}>
                   Trạng thái: {getStatusInfo(selectedOrder.status).text}
                 </p>
+
+                <div className="order-info-mini">
+                  <p><strong>🕒 Ngày đặt:</strong> {new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}</p>
+                  <p>
+                    <strong>💳 Thanh toán:</strong>{' '}
+                    <span style={{ color: isOrderPaid(selectedOrder) ? '#2ecc71' : '#e74c3c', fontWeight: 600 }}>
+                      {isOrderPaid(selectedOrder) ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                    </span>
+                    {selectedOrder.paymentMethod && ` (${selectedOrder.paymentMethod})`}
+                  </p>
+                  {selectedOrder.note && <p><strong>📝 Ghi chú:</strong> {selectedOrder.note}</p>}
+                </div>
+
                 <div className="shipping-box-mini">
                   <p><strong>📍 Người nhận:</strong> {selectedOrder.shippingInfo?.recipientName}</p>
                   <p><strong>📞 Điện thoại:</strong> {selectedOrder.shippingInfo?.phoneNumber}</p>
                   <p><strong>🏠 Địa chỉ:</strong> {selectedOrder.shippingInfo?.addressLine}, {selectedOrder.shippingInfo?.district}, {selectedOrder.shippingInfo?.city}</p>
+                  {selectedOrder.shippingInfo?.notes && <p><strong>📝 Ghi chú giao hàng:</strong> {selectedOrder.shippingInfo.notes}</p>}
                 </div>
               </div>
 
@@ -183,9 +219,14 @@ const Orders_Customer: React.FC = () => {
                 <h5>📦 Sản phẩm</h5>
                 {selectedOrder.items?.map((item: any) => (
                   <div key={item.orderItemId} className="mini-product-item">
-                    <img src={item.primaryImageUrl || 'https://placehold.co/100'} alt="product" />
+                    <img src={item.primaryImageUrl || item.variant?.product?.primaryImageUrl || 'https://placehold.co/100'} alt="product" />
                     <div className="mini-info">
-                      <p className="p-name-mini">{item.productName}</p>
+                      <p className="p-name-mini">{item.productName || item.variant?.product?.productName || 'Sản phẩm'}</p>
+                      {item.variant && (
+                        <p style={{ fontSize: '12px', color: '#666', margin: '2px 0' }}>
+                          Màu: {item.variant.color || 'N/A'} | Chất liệu: {item.variant.glassMaterial || 'N/A'}
+                        </p>
+                      )}
                       <p className="p-price-mini">{item.quantity} x {item.unitPrice?.toLocaleString()}đ</p>
                     </div>
                   </div>
