@@ -14,7 +14,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
   const [showModal, setShowModal] = useState(false);
   const [modalTab, setModalTab] = useState<"info" | "variants">("info");
   const [isReadOnly, setIsReadOnly] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null); // Trọn vẹn dữ liệu /products/{id}
+  const [editingProduct, setEditingProduct] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     productName: "",
