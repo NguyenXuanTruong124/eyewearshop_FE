@@ -96,7 +96,17 @@
 .card-bottom {
   display: flex;
   flex-direction: column;
+}
+
+.card-bottom-actions {
+  display: flex;
   gap: 10px;
+  width: 100%;
+}
+
+.card-bottom-actions > button {
+  flex: 1;
+  margin-bottom: 0 !important;
 }
 
 .btn-main-red {
@@ -266,6 +276,22 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
+/* Các trường form trả hàng */
+.form-group-return { display: flex; flex-direction: column; gap: 5px; }
+.form-group-return label { font-weight: 600; font-size: 14px; }
+.form-group-return select, .form-group-return input, .form-group-return textarea {
+  padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit;
+}
+.return-item-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 8px;
+}
+.return-item-name { flex: 1; font-size: 14px; }
+.return-qty-input { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+
 .mini-product-item img {
   width: 50px;
   height: 50px;
@@ -316,6 +342,31 @@
   color: #f39c12;
 }
 
+.status-badge.validated {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.confirmed {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-badge.processed {
+  background: #e0f2f1;
+  color: #00897b;
+}
+
+.status-badge.produced {
+  background: #fce4ec;
+  color: #d81b60;
+}
+
+.status-badge.delivered {
+  background: #e1f5fe;
+  color: #0288d1;
+}
+
 .status-badge.awaiting-payment {
   background: #e0f2fe;
   color: #0284c7;
@@ -329,6 +380,21 @@
 .status-badge.cancelled {
   background: #fee2e2;
   color: #ef4444;
+}
+
+.status-badge.return-requested {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-badge.return-approved {
+  background: #e8eaf6;
+  color: #3f51b5;
+}
+
+.status-badge.return-rejected {
+  background: #ffebee;
+  color: #c62828;
 }
 
 .btn-secondary {
