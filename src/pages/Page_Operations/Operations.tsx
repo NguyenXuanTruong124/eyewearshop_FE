@@ -12,6 +12,33 @@ const Operations: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
+  const [mode, setMode] = useState<'ORDERS' | 'RETURNS'>('ORDERS');
+  const [returnRequests, setReturnRequests] = useState<any[]>([]);
+
+  const fetchReturns = async () => {
+    try {
+      setLoading(true);
+      // Operations: Lấy yêu cầu đang ở trạng thái 1 (Approved by Sales)
+      const res = await axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=1`);
+      setReturnRequests(res.data?.items || []);
+    } catch (e) {
+      setReturnRequests([]);
+      toast.error("Không thể tải danh sách khiếu nại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateReturnStatus = async (id: number, status: number) => {
+    try {
+      await axiosClient.put(`/return-requests/${id}/status`, status, { headers: { 'Content-Type': 'application/json' } });
+      toast.success("Cập nhật khiếu nại thành công!");
+      fetchReturns();
+    } catch(e) {
+      toast.error("Lỗi cập nhật khiếu nại");
+    }
+  };
+
   const fetchOrders = async (tab: string) => {
     try {
       setLoading(true);
@@ -39,8 +66,12 @@ const Operations: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchOrders(activeTab);
-  }, [activeTab]);
+    if (mode === 'ORDERS') {
+      fetchOrders(activeTab);
+    } else {
+      fetchReturns();
+    }
+  }, [mode, activeTab]);
 
   const handleViewDetail = async (orderId: number) => {
     try {
@@ -126,12 +157,20 @@ const Operations: React.FC = () => {
       </header>
 
       <main className="staff-main-content">
-        <div className="content-header">
-          <h2>Điều hành Sản xuất & Giao hàng (Operations)</h2>
-          <p>Quản lý gia công mắt kính, đóng gói và giao nhận cho từng loại đơn hàng.</p>
+        <div className="content-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2>Dashboard Phân loại & Xử lý (Operations)</h2>
+            <p>Quản lý gia công mắt kính, đóng gói và xử lý khiếu nại hoàn tất.</p>
+          </div>
+          <div className="mode-toggle-buttons">
+            <button className={`mode-btn ${mode === 'ORDERS' ? 'active-mode' : ''}`} onClick={() => setMode('ORDERS')}>Quản lý Đơn hàng</button>
+            <button className={`mode-btn ${mode === 'RETURNS' ? 'active-mode' : ''}`} onClick={() => setMode('RETURNS')}>Xử lý Đổi trả / Bảo hành</button>
+          </div>
         </div>
 
-        <div className="staff-tabs-container">
+        {mode === 'ORDERS' ? (
+          <>
+            <div className="staff-tabs-container">
           <button className={`staff-tab-btn ${activeTab === 'AVAILABLE' ? 'active' : ''}`} onClick={() => setActiveTab('AVAILABLE')}>
             Đơn hàng Có Sẵn
           </button>
@@ -205,7 +244,48 @@ const Operations: React.FC = () => {
           ) : (
             <div className="empty-state-card">Chưa có đơn hàng nào cần xử lý trong phân loại này.</div>
           )}
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="staff-tabs-container">
+              <button className="staff-tab-btn active">
+                Yêu cầu chờ xử lý
+              </button>
+            </div>
+            <div className="order-cards-grid">
+              {returnRequests.length > 0 ? (
+                returnRequests.map(req => (
+                  <div key={req.returnRequestId} className={`staff-order-card status-border-1`}>
+                    <div className="card-header-top">
+                      <span className="order-number">Mã KN: #{req.returnRequestId}</span>
+                      <span className={`status-tag-mini s-1`}>Đã Duyệt (Chờ OPS)</span>
+                    </div>
+                    <div className="card-body-info">
+                      <p><strong>🛍️ Mã Đơn:</strong> #{req.order?.orderNumber}</p>
+                      <p><strong>Loại:</strong> <span style={{fontWeight: 'bold', color: '#e31837'}}>{req.requestType}</span></p>
+                      <p><strong>Lý do:</strong> {req.reason}</p>
+                      <p><strong>Chi tiết:</strong> {req.description}</p>
+                      <p><strong>Ngày tạo:</strong> {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
+                    </div>
+                    <div className="card-footer-actions">
+                      <div className="group-btns" style={{ width: '100%', justifyContent: 'space-between' }}>
+                        {req.status === 1 && (
+                          <>
+                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 3)} className="btn-action-next">Đã xử lý xong (Hoàn tất)</button>
+                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 2)} className="btn-action-cancel-text">Từ chối (Hủy KN)</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state-card">Không có yêu cầu khiếu nại nào đang chờ.</div>
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       {showModal && selectedOrder && (

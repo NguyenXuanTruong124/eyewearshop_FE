@@ -105,6 +105,35 @@
   font-size: 14px;
 }
 
+.mode-toggle-buttons {
+  display: flex;
+  gap: 10px;
+  background: white;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.mode-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #555;
+  transition: 0.2s;
+}
+
+.mode-btn.active-mode {
+  background: var(--eyewear-red);
+  color: white;
+}
+
+.mode-btn:not(.active-mode):hover {
+  background: #f0f0f0;
+}
+
 /* TABS CONTAINER */
 .staff-tabs-container {
   display: flex;
