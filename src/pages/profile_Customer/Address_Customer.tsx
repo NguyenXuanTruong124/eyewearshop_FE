@@ -21,8 +21,16 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
     addressLine: "", 
     city: "", 
     district: "", 
+    ward: "",
+    ghnDistrictId: 0,
+    ghnWardCode: "",
     note: "",
   });
+
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number>(0);
 
   // Lấy danh sách địa chỉ
   const fetchAddresses = async () => {
@@ -34,7 +42,51 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
     }
   };
 
-  useEffect(() => { fetchAddresses(); }, []);
+  useEffect(() => { 
+    const fetchProvinces = async () => {
+      try {
+        const response = await axiosClient.get("/ghn/provinces");
+        if (response.data) setProvinces(response.data);
+      } catch (error) {
+        console.error("Lỗi lấy danh sách tỉnh:", error);
+      }
+    };
+    fetchProvinces();
+    fetchAddresses(); 
+  }, []);
+
+  useEffect(() => {
+    if (selectedProvinceId) {
+      const fetchDistricts = async () => {
+        try {
+          const response = await axiosClient.get(`/ghn/districts?provinceId=${selectedProvinceId}`);
+          if (response.data) setDistricts(response.data);
+        } catch (error) {
+          console.error("Lỗi lấy danh sách huyện:", error);
+        }
+      };
+      fetchDistricts();
+    } else {
+      setDistricts([]);
+    }
+    setWards([]);
+  }, [selectedProvinceId]);
+
+  useEffect(() => {
+    if (newAddress.ghnDistrictId) {
+      const fetchWards = async () => {
+        try {
+          const response = await axiosClient.get(`/ghn/wards?districtId=${newAddress.ghnDistrictId}`);
+          if (response.data) setWards(response.data);
+        } catch (error) {
+          console.error("Lỗi lấy danh sách xã:", error);
+        }
+      };
+      fetchWards();
+    } else {
+      setWards([]);
+    }
+  }, [newAddress.ghnDistrictId]);
 
   // Xử lý Thêm hoặc Cập nhật địa chỉ
   const handleSubmitAddress = async (e: React.FormEvent) => {
@@ -77,12 +129,21 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
 
   const handleEditClick = (addr: any) => {
     setEditingAddressId(addr.addressId);
+    
+    // Tìm ProvinceID dựa trên tên
+    const matchedProvince = provinces.find(p => p.ProvinceName === addr.city || p.NameExtension?.includes(addr.city));
+    if (matchedProvince) setSelectedProvinceId(matchedProvince.ProvinceID);
+    else setSelectedProvinceId(0);
+
     setNewAddress({
-      recipientName: addr.recipientName,
-      phoneNumber: addr.phoneNumber,
-      addressLine: addr.addressLine,
-      city: addr.city,
-      district: addr.district,
+      recipientName: addr.recipientName || "",
+      phoneNumber: addr.phoneNumber || "",
+      addressLine: addr.addressLine || "",
+      city: addr.city || "",
+      district: addr.district || "",
+      ward: addr.ward || "",
+      ghnDistrictId: addr.ghnDistrictId || 0,
+      ghnWardCode: addr.ghnWardCode || "",
       note: addr.note || "",
     });
     setShowAddAddress(true);
@@ -91,8 +152,9 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
   const resetForm = () => {
     setShowAddAddress(false);
     setEditingAddressId(null);
+    setSelectedProvinceId(0);
     setNewAddress({
-      recipientName: "", phoneNumber: "", addressLine: "", city: "", district: "", note: "",
+      recipientName: "", phoneNumber: "", addressLine: "", city: "", district: "", ward: "", ghnDistrictId: 0, ghnWardCode: "", note: "",
     });
   };
 
@@ -139,18 +201,48 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
               onChange={(e) => setNewAddress({...newAddress, phoneNumber: e.target.value})} 
               required 
             />
-            <input 
-              placeholder="Tỉnh/Thành phố" 
-              value={newAddress.city} 
-              onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} 
-              required 
-            />
-            <input 
-              placeholder="Phường" 
-              value={newAddress.district} 
-              onChange={(e) => setNewAddress({...newAddress, district: e.target.value})} 
-              required 
-            />
+            <select 
+              className="full-width"
+              value={selectedProvinceId} 
+              onChange={(e) => {
+                const provId = Number(e.target.value);
+                const provName = e.target.options[e.target.selectedIndex].text;
+                setSelectedProvinceId(provId);
+                setNewAddress({...newAddress, city: provId ? provName : "", district: "", ward: "", ghnDistrictId: 0, ghnWardCode: ""});
+              }}
+              required
+            >
+              <option value={0}>-- Chọn Tỉnh/Thành phố --</option>
+              {provinces.map(p => <option key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</option>)}
+            </select>
+            <select 
+              className="full-width"
+              value={newAddress.ghnDistrictId} 
+              onChange={(e) => {
+                const distId = Number(e.target.value);
+                const distName = e.target.options[e.target.selectedIndex].text;
+                setNewAddress({...newAddress, ghnDistrictId: distId, district: distId ? distName : "", ward: "", ghnWardCode: ""});
+              }}
+              required
+              disabled={!selectedProvinceId}
+            >
+              <option value={0}>-- Chọn Quận/Huyện --</option>
+              {districts.map(d => <option key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</option>)}
+            </select>
+            <select 
+              className="full-width"
+              value={newAddress.ghnWardCode} 
+              onChange={(e) => {
+                const wardCode = e.target.value;
+                const wardName = e.target.options[e.target.selectedIndex].text;
+                setNewAddress({...newAddress, ghnWardCode: wardCode, ward: wardCode ? wardName : ""});
+              }}
+              required
+              disabled={!newAddress.ghnDistrictId}
+            >
+              <option value="">-- Chọn Phường/Xã --</option>
+              {wards.map(w => <option key={w.WardCode} value={w.WardCode}>{w.WardName}</option>)}
+            </select>
             <input 
               className="full-width" 
               placeholder="Tên đường" 
@@ -186,7 +278,7 @@ const Address_Customer: React.FC<Props> = ({ triggerToast }) => {
               </div>
             </div>
             <p className="addr-text"><span className="addr-label">SĐT:</span> {addr.phoneNumber}</p>
-            <p className="addr-text"><span className="addr-label">Địa chỉ:</span> {addr.addressLine}, {addr.district}, {addr.city}</p>
+            <p className="addr-text"><span className="addr-label">Địa chỉ:</span> {addr.addressLine}, {addr.ward ? addr.ward + ', ' : ''}{addr.district}, {addr.city}</p>
             {addr.note && <p className="addr-note"><span className="addr-label">Ghi chú:</span> {addr.note}</p>}
           </div>
         )) : (

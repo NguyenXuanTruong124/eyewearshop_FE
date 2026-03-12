@@ -25,9 +25,15 @@ const Checkout: React.FC = () => {
     os_sph: '', os_cyl: '', os_axis: '', os_add: '', pd: ''
   });
   const [shippingInfo, setShippingInfo] = useState({
-    fullName: '', phoneNumber: '', email: '', address: '', city: '', district: '', ward: '', notes: ''
+    fullName: '', phoneNumber: '', email: '', address: '', city: '', district: '', ward: '', notes: '', ghnDistrictId: 0, ghnWardCode: ''
   });
   const [paymentMethod, setPaymentMethod] = useState('COD');
+  
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number>(0);
+  const [shippingFeeData, setShippingFeeData] = useState<any>(null);
 
   useEffect(() => {
     const initData = async () => {
@@ -85,7 +91,76 @@ const Checkout: React.FC = () => {
       }
     };
     initData();
+    
+    // Load provinces
+    const fetchProvinces = async () => {
+      try {
+        const response = await axiosClient.get("/ghn/provinces");
+        if (response.data) setProvinces(response.data);
+      } catch (error) {
+        console.error("Lỗi lấy danh sách tỉnh:", error);
+      }
+    };
+    fetchProvinces();
   }, [navigate]);
+
+  // Load districts
+  useEffect(() => {
+    if (selectedProvinceId) {
+      const fetchDistricts = async () => {
+        try {
+          const response = await axiosClient.get(`/ghn/districts?provinceId=${selectedProvinceId}`);
+          if (response.data) setDistricts(response.data);
+        } catch (error) {
+          console.error("Lỗi lấy danh sách huyện:", error);
+        }
+      };
+      fetchDistricts();
+    } else {
+      setDistricts([]);
+    }
+    setWards([]);
+  }, [selectedProvinceId]);
+
+  // Load wards
+  useEffect(() => {
+    if (shippingInfo.ghnDistrictId) {
+      const fetchWards = async () => {
+        try {
+          const response = await axiosClient.get(`/ghn/wards?districtId=${shippingInfo.ghnDistrictId}`);
+          if (response.data) setWards(response.data);
+        } catch (error) {
+          console.error("Lỗi lấy danh sách xã:", error);
+        }
+      };
+      fetchWards();
+    } else {
+      setWards([]);
+    }
+  }, [shippingInfo.ghnDistrictId]);
+
+  // Calculate Shipping fee
+  useEffect(() => {
+    if (shippingInfo.ghnDistrictId && shippingInfo.ghnWardCode && cartData) {
+      const fetchShippingFee = async () => {
+        try {
+          const response = await axiosClient.get(`/checkout/shipping-fee`, {
+            params: {
+              toDistrictId: shippingInfo.ghnDistrictId,
+              toWardCode: shippingInfo.ghnWardCode
+            }
+          });
+          if (response.data) setShippingFeeData(response.data);
+        } catch (error) {
+          console.error("Lỗi lấy phí ship:", error);
+          setShippingFeeData(null);
+        }
+      };
+      fetchShippingFee();
+    } else {
+      setShippingFeeData(null);
+    }
+  }, [shippingInfo.ghnDistrictId, shippingInfo.ghnWardCode, cartData]);
 
   const handleSelectPrescription = (id: number) => {
     setSelectedPrescriptionId(id);
@@ -101,17 +176,32 @@ const Checkout: React.FC = () => {
   };
 
   const handleSelectAddress = (id: number) => {
+    if (!id) {
+      setSelectedAddressId(null);
+      setShippingInfo({
+        ...shippingInfo,
+        address: '', city: '', district: '', ward: '', ghnDistrictId: 0, ghnWardCode: ''
+      });
+      setSelectedProvinceId(0);
+      return;
+    }
     setSelectedAddressId(id);
     const a = savedAddresses.find(item => item.addressId === id);
     if (a) {
+      const matchedProvince = provinces.find(p => p.ProvinceName === a.city || p.NameExtension?.includes(a.city));
+      if (matchedProvince) setSelectedProvinceId(matchedProvince.ProvinceID);
+      else setSelectedProvinceId(0);
+
       setShippingInfo(prev => ({
         ...prev,
-        fullName: a.receiverName || a.fullName || prev.fullName,
+        fullName: a.recipientName || a.receiverName || a.fullName || prev.fullName,
         phoneNumber: a.phoneNumber || a.phone || prev.phoneNumber,
         address: a.addressLine || a.address || '',
         city: a.city || '',
         district: a.district || '',
-        ward: a.ward || ''
+        ward: a.ward || '',
+        ghnDistrictId: a.ghnDistrictId || 0,
+        ghnWardCode: a.ghnWardCode || ''
       }));
       toast.success("Đã áp dụng địa chỉ giao hàng!");
     }
@@ -119,15 +209,46 @@ const Checkout: React.FC = () => {
 
   // Gọi API Checkout chốt đơn khi nhấn Tiếp tục ở Bước 2
   const handleProceedToPayment = async () => {
-    if (!selectedAddressId) {
-      toast.error("Vui lòng chọn địa chỉ giao hàng!");
+    if (!selectedAddressId && (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || !shippingInfo.ghnDistrictId || !shippingInfo.ghnWardCode)) {
+      toast.error("Vui lòng chọn hoặc điền đầy đủ địa chỉ giao hàng!");
       return;
     }
 
     setLoading(true);
     try {
+      let finalAddressId = selectedAddressId;
+      if (!finalAddressId) {
+        // Create new address implicitly
+        const addressPayload = {
+          recipientName: shippingInfo.fullName,
+          phoneNumber: shippingInfo.phoneNumber,
+          addressLine: shippingInfo.address,
+          city: shippingInfo.city,
+          district: shippingInfo.district,
+          ward: shippingInfo.ward,
+          ghnDistrictId: shippingInfo.ghnDistrictId,
+          ghnWardCode: shippingInfo.ghnWardCode,
+          note: shippingInfo.notes
+        };
+        await axiosClient.post("/account/addresses", addressPayload);
+        const addrRes = await axiosClient.get("/account/addresses");
+        // find newly created matching address
+        const matched = addrRes.data.reverse().find((a: any) => a.addressLine === shippingInfo.address && a.phoneNumber === shippingInfo.phoneNumber);
+        if (matched) {
+          finalAddressId = matched.addressId;
+          setSelectedAddressId(finalAddressId);
+          setSavedAddresses(addrRes.data.reverse());
+        } else {
+          toast.error("Không thể tạo địa chỉ mới!");
+          setLoading(false);
+          return;
+        }
+      }
+
       const payload: any = {
-        addressId: selectedAddressId,
+        addressId: finalAddressId,
+        toDistrictId: shippingInfo.ghnDistrictId,
+        toWardCode: shippingInfo.ghnWardCode,
         shippingMethod: "Standard"
       };
       if (needsPrescription && selectedPrescriptionId) {
@@ -287,19 +408,65 @@ const Checkout: React.FC = () => {
                 <div className="shipping-form">
                   <div className="field">
                     <label>Họ và tên *</label>
-                    <input value={shippingInfo.fullName} onChange={e => setShippingInfo({ ...shippingInfo, fullName: e.target.value })} />
+                    <input value={shippingInfo.fullName} onChange={e => { setShippingInfo({ ...shippingInfo, fullName: e.target.value }); setSelectedAddressId(null); }} />
                   </div>
                   <div className="input-row-2">
-                    <div className="field"><label>Số điện thoại *</label><input value={shippingInfo.phoneNumber} onChange={e => setShippingInfo({ ...shippingInfo, phoneNumber: e.target.value })} /></div>
+                    <div className="field"><label>Số điện thoại *</label><input value={shippingInfo.phoneNumber} onChange={e => { setShippingInfo({ ...shippingInfo, phoneNumber: e.target.value }); setSelectedAddressId(null); }} /></div>
                     <div className="field"><label>Email *</label><input value={shippingInfo.email} onChange={e => setShippingInfo({ ...shippingInfo, email: e.target.value })} /></div>
                   </div>
                   <div className="field">
                     <label>Địa chỉ nhận hàng *</label>
-                    <input value={shippingInfo.address} onChange={e => setShippingInfo({ ...shippingInfo, address: e.target.value })} />
+                    <input value={shippingInfo.address} onChange={e => { setShippingInfo({ ...shippingInfo, address: e.target.value }); setSelectedAddressId(null); }} />
                   </div>
-                  <div className="input-row-2">
-                    <div className="field"><label>Tỉnh/Thành phố *</label><input value={shippingInfo.city} onChange={e => setShippingInfo({ ...shippingInfo, city: e.target.value })} /></div>
-                    <div className="field"><label>Quận/Huyện *</label><input value={shippingInfo.district} onChange={e => setShippingInfo({ ...shippingInfo, district: e.target.value })} /></div>
+                  <div className="input-row-3">
+                    <div className="field">
+                      <label>Tỉnh/Thành phố *</label>
+                      <select 
+                        value={selectedProvinceId} 
+                        onChange={(e) => {
+                          const provId = Number(e.target.value);
+                          const provName = e.target.options[e.target.selectedIndex].text;
+                          setSelectedProvinceId(provId);
+                          setShippingInfo({...shippingInfo, city: provId ? provName : "", district: "", ward: "", ghnDistrictId: 0, ghnWardCode: ""});
+                          setSelectedAddressId(null);
+                        }}
+                      >
+                        <option value={0}>-- Chọn Tỉnh --</option>
+                        {provinces.map(p => <option key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</option>)}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Quận/Huyện *</label>
+                      <select 
+                        value={shippingInfo.ghnDistrictId} 
+                        onChange={(e) => {
+                          const distId = Number(e.target.value);
+                          const distName = e.target.options[e.target.selectedIndex].text;
+                          setShippingInfo({...shippingInfo, ghnDistrictId: distId, district: distId ? distName : "", ward: "", ghnWardCode: ""});
+                          setSelectedAddressId(null);
+                        }}
+                        disabled={!selectedProvinceId}
+                      >
+                        <option value={0}>-- Chọn Huyện --</option>
+                        {districts.map(d => <option key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</option>)}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Phường/Xã *</label>
+                      <select 
+                        value={shippingInfo.ghnWardCode} 
+                        onChange={(e) => {
+                          const wardCode = e.target.value;
+                          const wardName = e.target.options[e.target.selectedIndex].text;
+                          setShippingInfo({...shippingInfo, ghnWardCode: wardCode, ward: wardCode ? wardName : ""});
+                          setSelectedAddressId(null);
+                        }}
+                        disabled={!shippingInfo.ghnDistrictId}
+                      >
+                        <option value="">-- Chọn Xã --</option>
+                        {wards.map(w => <option key={w.WardCode} value={w.WardCode}>{w.WardName}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div className="actions">
@@ -348,8 +515,29 @@ const Checkout: React.FC = () => {
             </div>
             <div className="summary-box">
               <div className="row"><span>Tạm tính</span><span>{(cartData.summary?.subTotal || 0).toLocaleString()}đ</span></div>
-              <div className="row"><span>Phí vận chuyển</span><span className="free">Miễn phí</span></div>
-              <div className="row total"><span>Tổng cộng</span><span className="final">{(cartData.summary?.subTotal || 0).toLocaleString()}đ</span></div>
+              {shippingFeeData && shippingFeeData.discountAmount > 0 && (
+                <div className="row"><span>Giảm giá</span><span>-{shippingFeeData.discountAmount.toLocaleString()}đ</span></div>
+              )}
+              <div className="row">
+                <span>Phí vận chuyển</span>
+                <span>
+                  {shippingFeeData && shippingFeeData.details && shippingFeeData.details.shippingFee != null 
+                    ? `${shippingFeeData.details.shippingFee.toLocaleString()}đ` 
+                    : shippingFeeData && shippingFeeData.totalFee != null 
+                    ? `${shippingFeeData.totalFee.toLocaleString()}đ`
+                    : (shippingFeeData && typeof shippingFeeData.shippingFee === 'number')
+                    ? `${shippingFeeData.shippingFee.toLocaleString()}đ`
+                    : <span className="free">---</span>}
+                </span>
+              </div>
+              <div className="row total">
+                <span>Tổng cộng</span>
+                <span className="final">
+                  {(shippingFeeData && shippingFeeData.total != null 
+                    ? shippingFeeData.total 
+                    : (cartData.summary?.subTotal || 0) + (shippingFeeData?.shippingFee || shippingFeeData?.totalFee || shippingFeeData?.details?.shippingFee || 0)).toLocaleString()}đ
+                </span>
+              </div>
             </div>
           </aside>
         </div>

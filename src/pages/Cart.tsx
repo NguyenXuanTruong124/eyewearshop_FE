@@ -140,9 +140,15 @@ const Cart: React.FC = () => {
 
           <aside className="cart-summary">
             <h3 className="summary-title">Tóm tắt đơn hàng</h3>
-            <div className="summary-row"><span>Tạm tính</span><span>{(cartData.summary?.subTotal || 0).toLocaleString()}đ</span></div>
-            <div className="summary-row"><span>Vận chuyển</span><span className="shipping-free">Miễn phí</span></div>
-            <div className="summary-total-row"><span>Tổng cộng</span><span>{(cartData.summary?.subTotal || 0).toLocaleString()}đ</span></div>
+            <div className="summary-row temporary-total" style={{ borderBottom: '1px dashed #ddd', paddingBottom: '15px', marginBottom: '15px' }}>
+              <span style={{ fontWeight: '600' }}>Tạm tính ({cartData.summary?.itemCount || 0} sản phẩm)</span>
+              <span style={{ fontWeight: '700', color: '#cc0000', fontSize: '18px' }}>
+                {(cartData.summary?.subTotal || 0).toLocaleString()}đ
+              </span>
+            </div>
+            <p className="shipping-note-cart" style={{ fontSize: '13px', color: '#777', fontStyle: 'italic', marginBottom: '20px' }}>
+              * Phí vận chuyển sẽ được tính ở bước thanh toán
+            </p>
             <button className="btn-checkout" onClick={() => {
               navigate('/checkout');
             }}>Tiến hành thanh toán</button>

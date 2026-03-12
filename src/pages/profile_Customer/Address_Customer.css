@@ -43,6 +43,7 @@
 }
 
 .address-grid-form input, 
+.address-grid-form select,
 .address-grid-form textarea {
   padding: 14px 18px;
   border: 1.5px solid #eee;
@@ -51,9 +52,27 @@
   outline: none;
   transition: all 0.3s ease;
   background-color: #fcfcfc;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #333;
 }
 
-.address-grid-form input:focus {
+.address-grid-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+.address-grid-form input:focus,
+.address-grid-form select:focus,
+.address-grid-form textarea:focus {
   border-color: #cc0000;
   background-color: #fff;
   box-shadow: 0 0 0 4px rgba(204, 0, 0, 0.05);
