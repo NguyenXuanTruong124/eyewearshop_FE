@@ -11,6 +11,7 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [needsPrescription, setNeedsPrescription] = useState(false);
   const [cartData, setCartData] = useState<any>(null);
+  const [isPreOrder, setIsPreOrder] = useState(false);
 
   // Lưu ID đơn hàng sau khi tạo thành công để dùng cho Payment
   const [orderId, setOrderId] = useState<number | null>(null);
@@ -50,12 +51,17 @@ const Checkout: React.FC = () => {
 
         setCartData(cartRes.data);
 
+        // Kiểm tra xem có sản phẩm nào là Pre-order không
+        // Một đơn hàng được tính là Pre-order nếu có ít nhất 1 sản phẩm là hàng Pre-order (hết hàng sẵn và cho phép đặt trước)
+        const hasPreOrderItem = cartRes.data.items.some((i: any) => 
+          (i.variant?.stockQuantity <= 0 && i.variant?.preOrderQuantity > 0) || i.inStock === false
+        );
+        setIsPreOrder(hasPreOrderItem);
+
         // 2. Tải requirement để kiểm tra xem có cần nhập thông số mắt không
         try {
-          // Lưu ý: Đường dẫn API requirement có thể cần điều chỉnh nếu tên API API thực tế của bạn khác
           const reqRes = await axiosClient.get('/checkout/requirements');
           console.log('📡 [API GET /checkout/requirements] Phản hồi:', reqRes.data);
-          // Kiểm tra field trả về (có thể là needsPrescription hoặc requiresPrescription tuỳ BE bạn định nghĩa)
           setNeedsPrescription(reqRes.data.needsPrescription || reqRes.data.requiresPrescription || false);
         } catch (err: any) {
           console.error("Lỗi gọi API yêu cầu:", err);
@@ -249,7 +255,11 @@ const Checkout: React.FC = () => {
         addressId: finalAddressId,
         toDistrictId: shippingInfo.ghnDistrictId,
         toWardCode: shippingInfo.ghnWardCode,
-        shippingMethod: "Standard"
+        shippingMethod: "Standard",
+        // Tính toán OrderType dựa trên needsPrescription và isPreOrder
+        orderType: isPreOrder
+          ? (needsPrescription ? 'PRE_ORDER_PRESCRIPTION' : 'PRE_ORDER')
+          : (needsPrescription ? 'PRESCRIPTION' : 'AVAILABLE')
       };
       if (needsPrescription && selectedPrescriptionId) {
         payload.prescriptionId = selectedPrescriptionId;
@@ -498,7 +508,10 @@ const Checkout: React.FC = () => {
           </main>
 
           <aside className="checkout-sidebar-new">
-            <h3 className="sidebar-title">Đơn hàng của bạn</h3>
+            <h3 className="sidebar-title">
+              Đơn hàng của bạn 
+              {isPreOrder && <span className="pre-order-badge-title"> (Pre-order)</span>}
+            </h3>
             <div className="order-items">
               {cartData.items?.map((it: any) => (
                 <div className="mini-item" key={it.variantId}>
@@ -506,7 +519,12 @@ const Checkout: React.FC = () => {
                     <img src={it.variant?.product?.primaryImageUrl || 'https://placehold.co/100'} alt="product" />
                   </div>
                   <div className="info">
-                    <p className="name">{it.variant?.product?.productName}</p>
+                    <p className="name">
+                      {it.variant?.product?.productName}
+                      {((it.variant?.stockQuantity <= 0 && it.variant?.preOrderQuantity > 0) || it.inStock === false) && (
+                        <span className="item-preorder-tag">Pre-order</span>
+                      )}
+                    </p>
                     <p className="item-qty-info">Số lượng: <strong>{it.quantity}</strong></p>
                     <p className="price">{(it.variant?.price || 0).toLocaleString()}đ</p>
                   </div>
