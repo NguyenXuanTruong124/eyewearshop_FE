@@ -34,6 +34,25 @@ const productTypeList = [
 const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
   const [productList, setProductList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeType, setActiveType] = useState("SUNGLASSES");
+
+  // Custom Confirm Modal State
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const triggerConfirm = (title: string, message: string, onConfirm: () => void, type: "danger" | "warning" | "info" = "warning") => {
+    setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+  };
 
   // Modal Product
   const [showModal, setShowModal] = useState(false);
@@ -363,30 +382,44 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
   };
 
   const handleImageDelete = async (imageId: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
-    try {
-      await axiosClient.delete(`/manager/products/${editingProduct.productId}/images/${imageId}`);
-      triggerToast("Xóa ảnh thành công!");
-      const res = await axiosClient.get(`/manager/products/${editingProduct.productId}`);
-      setEditingProduct(res.data);
-      const updatedVariant = res.data.variants.find((v:any) => v.variantId === imageManageVariant.variantId);
-      setImageManageVariant(updatedVariant);
-    } catch (err) {
-      triggerToast("Lỗi xóa ảnh!");
-    }
+    triggerConfirm(
+      "Xác nhận xóa ảnh",
+      "Bạn có chắc chắn muốn xóa ảnh này không? Hành động này không thể hoàn tác.",
+      async () => {
+        try {
+          await axiosClient.delete(`/manager/products/${editingProduct.productId}/images/${imageId}`);
+          triggerToast("Xóa ảnh thành công!");
+          const res = await axiosClient.get(`/manager/products/${editingProduct.productId}`);
+          setProductList(prev => prev.map(p => p.productId === editingProduct.productId ? res.data : p));
+          setEditingProduct(res.data);
+          const updatedVariant = res.data.variants.find((v:any) => v.variantId === imageManageVariant.variantId);
+          setImageManageVariant(updatedVariant);
+        } catch (err) {
+          triggerToast("Lỗi xóa ảnh!");
+        }
+      },
+      "danger"
+    );
   };
 
   const handleDeleteProduct = async (productId: number, currentStatus: number) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
     const actionText = newStatus === 1 ? "mở bán lại" : "ngừng bán";
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} sản phẩm này không?`)) return;
-    try {
-      await axiosClient.put(`/manager/products/${newStatus}/products/${productId}`);
-      triggerToast(`Đã ${actionText} sản phẩm thành công!`);
-      fetchProducts();
-    } catch (err: any) {
-      triggerToast(err.response?.data?.message || "Lỗi cập nhật trạng thái");
-    }
+    
+    triggerConfirm(
+      `${newStatus === 1 ? "Mở bán" : "Ngừng bán"} sản phẩm`,
+      `Bạn có chắc chắn muốn ${actionText} sản phẩm này không?`,
+      async () => {
+        try {
+          await axiosClient.put(`/manager/products/${newStatus}/products/${productId}`);
+          triggerToast(`Đã ${actionText} sản phẩm thành công!`);
+          fetchProducts();
+        } catch (err: any) {
+          triggerToast(err.response?.data?.message || "Lỗi cập nhật trạng thái");
+        }
+      },
+      newStatus === 1 ? "info" : "danger"
+    );
   };
 
   const isFrameGroup = ["FRAME", "COMBO", "SUNGLASSES"].includes(formData.productType);
@@ -396,10 +429,31 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
   return (
     <div className="product-manager-wrapper">
       <div className="manager-content-header">
-        <h2>Quản lý Sản phẩm</h2>
+        <h2></h2>
         <button className="pm-btn-submit" onClick={() => openProductModal(null, false)}>
           <i className="fas fa-plus" /> Thêm sản phẩm
         </button>
+      </div>
+
+      <div className="pm-main-tabs">
+        {productTypeList.filter(pt => pt.id !== "OTHER").map(type => (
+          <button 
+            key={type.id}
+            className={`pm-main-tab-btn ${activeType === type.id ? 'active' : ''}`}
+            onClick={() => setActiveType(type.id)}
+          >
+            <span className="tab-icon">{
+              type.id === "SUNGLASSES" ? "" : 
+              type.id === "FRAME" ? "" : 
+              type.id === "RX_LENS" ? "" : 
+              type.id === "CONTACT_LENS" ? "" : ""
+            }</span>
+            <span className="tab-name">{type.name.split(' (')[0]}</span>
+            <span className="count-badge">
+              {productList.filter(p => p.productType === type.id).length}
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className="pm-variant-card">
@@ -416,7 +470,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
             </tr>
           </thead>
           <tbody>
-            {!loading ? productList.map((prod) => (
+            {!loading ? productList.filter(p => p.productType === activeType).map((prod) => (
               <tr key={prod.productId}>
                 <td>{prod.productId}</td>
                 <td className="td-bold">{prod.productName}</td>
@@ -435,6 +489,9 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
                 </td>
               </tr>
             )) : <tr><td colSpan={7} className="pm-table-center">Đang tải dữ liệu...</td></tr>}
+            {!loading && productList.filter(p => p.productType === activeType).length === 0 && (
+              <tr><td colSpan={7} className="pm-table-center">Không có sản phẩm nào thuộc loại này.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -925,6 +982,34 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
                   Lưu Thông Tin Sản Phẩm
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmConfig.isOpen && (
+        <div className="pm-confirm-overlay">
+          <div className="pm-confirm-modal">
+            <div className={`pm-confirm-icon ${confirmConfig.type || 'warning'}`}>
+              {confirmConfig.type === 'danger' ? '🗑️' : confirmConfig.type === 'info' ? '✨' : '❓'}
+            </div>
+            <h3 className="pm-confirm-title">{confirmConfig.title}</h3>
+            <p className="pm-confirm-message">{confirmConfig.message}</p>
+            <div className="pm-confirm-actions">
+              <button 
+                className="pm-confirm-btn cancel" 
+                onClick={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+              >
+                Hủy bỏ
+              </button>
+              <button 
+                className={`pm-confirm-btn confirm ${confirmConfig.type || 'warning'}`}
+                onClick={() => {
+                  confirmConfig.onConfirm();
+                  setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                }}
+              >
+                Xác nhận
+              </button>
             </div>
           </div>
         </div>
