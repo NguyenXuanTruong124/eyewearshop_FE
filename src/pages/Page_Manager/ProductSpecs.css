@@ -1,0 +1,63 @@
+/* ===== THÔNG SỐ KỸ THUẬT (PRODUCT SPECS) ===== */
+.pm-specs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pm-form-section--frame {
+  border-color: #fef3c7;
+}
+
+.pm-form-section--lens {
+  border-color: #e0f2fe;
+}
+
+.pm-form-section--contact {
+  border-color: #d1fae5;
+}
+
+.pm-section-title-modern--frame {
+  color: #d97706;
+  border-bottom-color: #fef3c7;
+}
+
+.pm-section-title-modern--lens {
+  color: #0284c7;
+  border-bottom-color: #e0f2fe;
+}
+
+.pm-section-title-modern--contact {
+  color: #059669;
+  border-bottom-color: #d1fae5;
+}
+
+.pm-form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.pm-nosepads-wrapper {
+  margin-top: 22px;
+}
+
+/* Min Max Range Groups */
+.min-max-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.min-max-group input {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+  padding: 10px;
+}
+
+.min-max-group span {
+  color: #94a3b8;
+  font-weight: 600;
+}
