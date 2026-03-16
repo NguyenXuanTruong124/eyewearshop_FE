@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosClient from "../../API_BE/axiosClient";
 import toast from 'react-hot-toast';
 import './Operations.css';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Operations: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -14,6 +15,15 @@ const Operations: React.FC = () => {
 
   const [mode, setMode] = useState<'ORDERS' | 'RETURNS'>('ORDERS');
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
+
+  // Custom Confirm Modal State
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean; title: string; message: string; onConfirm: () => void; type?: "danger" | "warning" | "info";
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+
+  const triggerConfirm = (title: string, message: string, onConfirm: () => void, type: "danger" | "warning" | "info" = "warning") => {
+    setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+  };
 
   const fetchReturns = async () => {
     try {
@@ -106,7 +116,22 @@ const Operations: React.FC = () => {
   const updateProgress = async (id: number, nextStatus: number) => {
     const actionName = nextStatus === 6 ? "Hủy đơn" : "Cập nhật";
 
-    if (nextStatus === 6 && !window.confirm("Bạn có chắc chắn muốn HỦY đơn hàng này không?")) {
+    if (nextStatus === 6) {
+      triggerConfirm(
+        "Xác nhận Hủy đơn hàng",
+        "Bạn có chắc chắn muốn HỦY đơn hàng này không? Khách hàng sẽ nhận được thông báo về việc đơn hàng bị đóng.",
+        async () => {
+          try {
+            await axiosClient.put(`/orders/${id}/status`, { newStatus: 6 });
+            toast.success("Hủy đơn thành công!");
+            fetchOrders(activeTab);
+            if (showModal && selectedOrder?.orderId === id) setShowModal(false);
+          } catch (e) {
+            toast.error("Lỗi thao tác hủy đơn");
+          }
+        },
+        "danger"
+      );
       return;
     }
 
@@ -397,6 +422,15 @@ const Operations: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={confirmConfig.isOpen} 
+        title={confirmConfig.title} 
+        message={confirmConfig.message} 
+        type={confirmConfig.type} 
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} 
+        onConfirm={() => { confirmConfig.onConfirm(); setConfirmConfig(prev => ({ ...prev, isOpen: false })); }} 
+      />
     </div>
   );
 };

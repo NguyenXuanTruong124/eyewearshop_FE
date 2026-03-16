@@ -7,7 +7,7 @@ import {
 } from "./ProductManagerUtils";
 import ProductSpecs from "./ProductSpecs";
 import VariantManager from "./VariantManager";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "../../components/ConfirmModal";
 
 interface ProductManagerProps {
   triggerToast: (msg: string) => void;
@@ -118,7 +118,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
       <div className="pm-main-tabs">
         {productTypeList.filter(pt => pt.id !== "OTHER").map(type => (
           <button key={type.id} className={`pm-main-tab-btn ${activeType === type.id ? 'active' : ''}`} onClick={() => setActiveType(type.id)}>
-            <span className="tab-icon">{type.id === "SUNGLASSES" ? "🕶️" : type.id === "FRAME" ? "👓" : type.id === "RX_LENS" ? "🥽" : type.id === "CONTACT_LENS" ? "👁️" : ""}</span>
+            <span className="tab-icon">{type.id === "SUNGLASSES" ? "" : type.id === "FRAME" ? "" : type.id === "RX_LENS" ? "" : type.id === "CONTACT_LENS" ? "" : ""}</span>
             <span className="tab-name">{type.name.split(' (')[0]}</span>
             <span className="count-badge">{productList.filter(p => p.productType === type.id).length}</span>
           </button>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosClient from "../../API_BE/axiosClient";
 import toast from 'react-hot-toast';
 import './Orders_Customer.css';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Orders_Customer: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -19,6 +20,15 @@ const Orders_Customer: React.FC = () => {
     description: '',
     items: [] as any[]
   });
+
+  // Custom Confirm Modal State
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean; title: string; message: string; onConfirm: () => void; type?: "danger" | "warning" | "info";
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+
+  const triggerConfirm = (title: string, message: string, onConfirm: () => void, type: "danger" | "warning" | "info" = "warning") => {
+    setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
+  };
 
   const fetchOrders = async () => {
     try {
@@ -110,18 +120,23 @@ const Orders_Customer: React.FC = () => {
   };
 
   const handleDeleteOrder = async (orderId: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) {
-      try {
-        toast.loading("Đang xóa đơn hàng...", { id: 'deleting' });
-        await axiosClient.delete(`/orders/${orderId}`);
-        toast.dismiss('deleting');
-        toast.success("Đã xóa đơn hàng thành công");
-        fetchOrders();
-      } catch (e: any) {
-        toast.dismiss('deleting');
-        toast.error("Không thể xóa đơn hàng");
-      }
-    }
+    triggerConfirm(
+      "Xác nhận xóa đơn hàng",
+      "Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác.",
+      async () => {
+        try {
+          toast.loading("Đang xóa đơn hàng...", { id: 'deleting' });
+          await axiosClient.delete(`/orders/${orderId}`);
+          toast.dismiss('deleting');
+          toast.success("Đã xóa đơn hàng thành công");
+          fetchOrders();
+        } catch (e: any) {
+          toast.dismiss('deleting');
+          toast.error("Không thể xóa đơn hàng");
+        }
+      },
+      "danger"
+    );
   };
 
   const handleOpenReturn = async (orderId: number) => {
@@ -443,6 +458,15 @@ const Orders_Customer: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={confirmConfig.isOpen} 
+        title={confirmConfig.title} 
+        message={confirmConfig.message} 
+        type={confirmConfig.type} 
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} 
+        onConfirm={() => { confirmConfig.onConfirm(); setConfirmConfig(prev => ({ ...prev, isOpen: false })); }} 
+      />
     </div>
   );
 };
