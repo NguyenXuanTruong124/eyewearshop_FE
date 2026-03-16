@@ -157,8 +157,22 @@ const Cart: React.FC = () => {
         </div>
       </div>
 
-      <ConfirmModal isOpen={showRemoveConfirm} title="Xóa" message="Xóa sản phẩm này?" onConfirm={confirmRemoveItem} onCancel={() => setShowRemoveConfirm(false)} isDangerous={true} />
-      <ConfirmModal isOpen={showClearConfirm} title="Xóa hết" message="Xóa toàn bộ sản phẩm?" onConfirm={confirmClearCart} onCancel={() => setShowClearConfirm(false)} isDangerous={true} />
+      <ConfirmModal 
+        isOpen={showRemoveConfirm} 
+        title="Xác nhận xóa" 
+        message="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?" 
+        onConfirm={confirmRemoveItem} 
+        onCancel={() => setShowRemoveConfirm(false)} 
+        type="danger" 
+      />
+      <ConfirmModal 
+        isOpen={showClearConfirm} 
+        title="Làm sạch giỏ hàng" 
+        message="Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng không?" 
+        onConfirm={confirmClearCart} 
+        onCancel={() => setShowClearConfirm(false)} 
+        type="danger" 
+      />
     </div>
   );
 };

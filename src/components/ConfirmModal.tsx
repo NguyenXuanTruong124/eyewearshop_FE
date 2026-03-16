@@ -1,54 +1,55 @@
 import React from 'react';
-import './styles/ConfirmModal.css';
+import './ConfirmModal.css';
 
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
   message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
+  type?: "danger" | "warning" | "info";
   confirmText?: string;
   cancelText?: string;
-  isDangerous?: boolean; 
+  onCancel: () => void;
+  onConfirm: () => void;
 }
 
-const ConfirmModal: React.FC<ConfirmModalProps> = ({
-  isOpen,
-  title,
-  message,
-  onConfirm,
-  onCancel,
-  confirmText = 'Xác nhận',
-  cancelText = 'Hủy',
-  isDangerous = false,
+const ConfirmModal: React.FC<ConfirmModalProps> = ({ 
+  isOpen, 
+  title, 
+  message, 
+  type = "warning", 
+  confirmText = "Xác nhận",
+  cancelText = "Hủy bỏ",
+  onCancel, 
+  onConfirm 
 }) => {
   if (!isOpen) return null;
 
+  const getIcon = () => {
+    switch (type) {
+      case "danger": return "🗑️";
+      case "info": return "✨";
+      default: return "❓";
+    }
+  };
+
   return (
-    <>
-      {/* Overlay mờ chứa Modal */}
-      <div className="modal-overlay" onClick={onCancel}>
-        {/* Modal */}
-        <div className="modal-container">
-          <div className="modal-content">
-            <h2 className="modal-title">{title}</h2>
-            <p className="modal-message">{message}</p>
-            
-            <div className="modal-actions">
-              <button className="modal-btn modal-btn-cancel" onClick={onCancel}>
-                {cancelText}
-              </button>
-              <button 
-                className={`modal-btn ${isDangerous ? 'modal-btn-danger' : 'modal-btn-confirm'}`}
-                onClick={onConfirm}
-              >
-                {confirmText}
-              </button>
-            </div>
-          </div>
+    <div className="pm-confirm-overlay" onClick={onCancel}>
+      <div className="pm-confirm-modal" onClick={e => e.stopPropagation()}>
+        <div className={`pm-confirm-icon ${type}`}>
+          {getIcon()}
+        </div>
+        <h3 className="pm-confirm-title">{title}</h3>
+        <p className="pm-confirm-message">{message}</p>
+        <div className="pm-confirm-actions">
+          <button className="pm-confirm-btn cancel" onClick={onCancel}>
+            {cancelText}
+          </button>
+          <button className={`pm-confirm-btn confirm ${type}`} onClick={onConfirm}>
+            {confirmText}
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
