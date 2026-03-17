@@ -339,7 +339,7 @@ const Orders_Customer: React.FC = () => {
                 <h5>📦 Sản phẩm</h5>
                 {selectedOrder.items?.map((item: any) => (
                   <div key={item.orderItemId} className="mini-product-item">
-                    <img src={item.primaryImageUrl || item.variant?.product?.primaryImageUrl || 'https://placehold.co/100'} alt="product" />
+                    <img src={item.imageUrl || item.variant?.product?.imageUrl || 'https://placehold.co/100'} alt="product" />
                     <div className="mini-info">
                       <p className="p-name-mini">{item.productName || item.variant?.product?.productName || 'Sản phẩm'}</p>
                       {item.variant && (

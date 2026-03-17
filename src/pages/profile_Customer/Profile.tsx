@@ -116,12 +116,7 @@ const Profile: React.FC = () => {
             <Orders_Customer />
           )}
 
-          {activeTab === "password" && (
-            <div className="tab-placeholder">
-              <h3>Đổi mật khẩu</h3>
-              <p>Chức năng đổi mật khẩu đang được cập nhật.</p>
-            </div>
-          )}
+          
         </main>
       </div>
     </div>
