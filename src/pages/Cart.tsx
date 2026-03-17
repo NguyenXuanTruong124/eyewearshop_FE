@@ -12,6 +12,7 @@ const Cart: React.FC = () => {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<boolean>(false);
   const [removeConfirmVariantId, setRemoveConfirmVariantId] = useState<number | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false);
+  const [compatibility, setCompatibility] = useState<{ isCompatible: boolean; issues: string[] } | null>(null);
 
   const fetchCart = useCallback(async () => {
     try {
@@ -32,15 +33,29 @@ const Cart: React.FC = () => {
     }
   }, []);
 
+  const checkCompatibility = useCallback(async () => {
+    try {
+      console.log('🔍 [Cart] Đang kiểm tra tính tương thích giữa gọng và tròng...');
+      const res = await axiosClient.get('/checkout/compatibility/frame-rxlens');
+      console.log('✅ [Cart] Kết quả compatibility:', res.data);
+      setCompatibility(res.data);
+    } catch (error: any) {
+      console.warn('⚠️ [Cart] Lỗi kiểm tra compatibility (Có thể giỏ hàng chưa đủ gọng/tròng):', error.response?.data || error.message);
+      setCompatibility(null);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCart();
+    checkCompatibility();
     const handler = () => {
       console.log('🔔 [Cart] Nhận tín hiệu cập nhật giỏ hàng...');
       fetchCart();
+      checkCompatibility();
     };
     window.addEventListener('cartUpdated', handler);
     return () => window.removeEventListener('cartUpdated', handler);
-  }, [fetchCart]);
+  }, [fetchCart, checkCompatibility]);
 
   const handleUpdateQty = async (variantId: number, newQty: number) => {
     if (newQty < 1) return;
@@ -110,6 +125,17 @@ const Cart: React.FC = () => {
         <h2 className="cart-header-title">Giỏ hàng của bạn</h2>
         <p className="cart-item-count">{cartData.summary?.itemCount || 0} sản phẩm</p>
 
+        {compatibility && compatibility.isCompatible === false && (
+          <div className="cart-compatibility-warning">
+            <div className="warning-icon">⚠️</div>
+            <div className="warning-content">
+              <h4>Phát hiện sự không tương thích</h4>
+              <p>{compatibility.issues?.join('. ') || 'Sản phẩm gọng và tròng không phù hợp kỹ thuật.'}</p>
+              <span className="warning-hint">* Vui lòng chọn gọng và tròng kính phù hợp để đảm bảo chất lượng gia công tốt nhất.</span>
+            </div>
+          </div>
+        )}
+
         <div className="cart-actions-toolbar">
           <button className="btn-secondary" onClick={handleClearCart}>Xóa toàn bộ</button>
         </div>
@@ -149,9 +175,19 @@ const Cart: React.FC = () => {
             <p className="shipping-note-cart" style={{ fontSize: '13px', color: '#777', fontStyle: 'italic', marginBottom: '20px' }}>
               * Phí vận chuyển sẽ được tính ở bước thanh toán
             </p>
-            <button className="btn-checkout" onClick={() => {
-              navigate('/checkout');
-            }}>Tiến hành thanh toán</button>
+            <button 
+              className={`btn-checkout ${compatibility && compatibility.isCompatible === false ? 'disabled' : ''}`} 
+              onClick={() => {
+                if (compatibility && compatibility.isCompatible === false) {
+                  toast.error("Vui lòng xử lý vấn đề tương thích trước khi thanh toán.");
+                  return;
+                }
+                navigate('/checkout');
+              }}
+              disabled={compatibility?.isCompatible === false}
+            >
+              Tiến hành thanh toán
+            </button>
             <Link to="/products" className="btn-continue-shopping" style={{ display: 'block', textAlign: 'center', marginTop: '15px' }}>Tiếp tục mua sắm</Link>
           </aside>
         </div>

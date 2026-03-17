@@ -20,6 +20,7 @@ const Checkout: React.FC = () => {
   const [savedPrescriptions, setSavedPrescriptions] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<number | null>(null);
+  const [prescriptionCompatibility, setPrescriptionCompatibility] = useState<{ isCompatible: boolean; issues: string[] } | null>(null);
 
   const [prescription, setPrescription] = useState({
     od_sph: '', od_cyl: '', od_axis: '', od_add: '',
@@ -168,16 +169,41 @@ const Checkout: React.FC = () => {
     }
   }, [shippingInfo.ghnDistrictId, shippingInfo.ghnWardCode, cartData]);
 
-  const handleSelectPrescription = (id: number) => {
+  const handleSelectPrescription = async (id: number) => {
     setSelectedPrescriptionId(id);
     const p = savedPrescriptions.find(item => item.prescriptionId === id);
     if (p) {
-      setPrescription({
+      const newPrescription = {
         od_sph: p.odSph || p.rightSphere || p.od_sph || '', od_cyl: p.odCyl || p.rightCylinder || p.od_cyl || '', od_axis: p.odAxis || p.rightAxis || p.od_axis || '', od_add: p.odAdd || p.rightAdd || p.od_add || '',
         os_sph: p.osSph || p.leftSphere || p.os_sph || '', os_cyl: p.osCyl || p.leftCylinder || p.os_cyl || '', os_axis: p.osAxis || p.leftAxis || p.os_axis || '', os_add: p.osAdd || p.leftAdd || p.os_add || '',
         pd: p.pd || p.rightPD || p.pd_value || ''
-      });
+      };
+      setPrescription(newPrescription);
       toast.success(`Đã áp dụng thông số mắt`);
+      
+      // Check compatibility
+      try {
+        const payload = {
+          prescriptionId: id,
+          rightSphere: Number(newPrescription.od_sph) || 0,
+          rightCylinder: Number(newPrescription.od_cyl) || 0,
+          rightAxis: Number(newPrescription.od_axis) || 0,
+          rightAdd: Number(newPrescription.od_add) || 0,
+          rightPD: Number(newPrescription.pd) || 0,
+          leftSphere: Number(newPrescription.os_sph) || 0,
+          leftCylinder: Number(newPrescription.os_cyl) || 0,
+          leftAxis: Number(newPrescription.os_axis) || 0,
+          leftAdd: Number(newPrescription.os_add) || 0,
+          leftPD: Number(newPrescription.pd) || 0
+        };
+        console.log('🔍 [Checkout] Kiểm tra tương thích Đơn kính:', payload);
+        const checkRes = await axiosClient.post('/checkout/compatibility/prescription-rxlens', payload);
+        console.log('✅ [Checkout] Kết quả Prescription Compatibility:', checkRes.data);
+        setPrescriptionCompatibility(checkRes.data);
+      } catch (err: any) {
+        console.warn('⚠️ [Checkout] Lỗi check Prescription compatibility:', err.response?.data || err.message);
+        setPrescriptionCompatibility(null);
+      }
     }
   };
 
@@ -396,8 +422,36 @@ const Checkout: React.FC = () => {
                     <input value={prescription.pd} onChange={(e) => setPrescription({ ...prescription, pd: e.target.value })} />
                   </div>
                 </div>
+
+                {prescriptionCompatibility && prescriptionCompatibility.isCompatible === false && (
+                  <div className="prescription-compatibility-alert">
+                    <div className="alert-content">
+                      <div className="alert-header">
+                        <span className="alert-icon">❌</span>
+                        <strong>Thông số mắt không phù hợp với tròng kính</strong>
+                      </div>
+                      <p className="alert-message">{prescriptionCompatibility.issues?.join('. ') || 'Độ cận/loạn của bạn vượt quá khả năng xử lý của tròng kính này.'}</p>
+                      <ul className="alert-suggestions">
+                        <li>Vui lòng kiểm tra lại thông số mắt bạn đã nhập.</li>
+                        <li>Hoặc quay lại giỏ hàng để chọn loại tròng kính có dải đo phù hợp hơn.</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
                 <div className="actions">
-                  <button className="btn-next" onClick={() => setStep(2)}>Tiếp tục</button>
+                  <button 
+                    className={`btn-next ${prescriptionCompatibility && prescriptionCompatibility.isCompatible === false ? 'warning' : ''}`} 
+                    onClick={() => {
+                      if (prescriptionCompatibility && prescriptionCompatibility.isCompatible === false) {
+                        toast.error("Vui lòng đảm bảo thông số mắt phù hợp với tròng kính.");
+                        return;
+                      }
+                      setStep(2);
+                    }}
+                  >
+                    Tiếp tục
+                  </button>
                 </div>
               </div>
             )}
