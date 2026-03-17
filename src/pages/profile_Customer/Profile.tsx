@@ -89,13 +89,6 @@ const Profile: React.FC = () => {
             <span>👁️</span> Thông số mắt
           </div>
 
-          <div
-            className={`sidebar-menu-item ${activeTab === "password" ? "active" : ""}`}
-            onClick={() => setActiveTab("password")}
-          >
-            <span>🔒</span> Đổi mật khẩu
-          </div>
-
           <div className="sidebar-menu-item logout-item-btn" onClick={handleLogout}>
             <span>🚪</span> Đăng xuất
           </div>

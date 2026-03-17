@@ -28,7 +28,7 @@ const Home: React.FC = () => {
         </div>
         <div className="service-item">
           <span className="service-icon">🚚</span>
-          <div><strong>Miễn phí vận chuyển</strong><p style={{fontSize:'12px', color:'#666'}}>Đơn hàng trên 500k</p></div>
+          <div><strong>Miễn phí vận chuyển</strong><p style={{fontSize:'12px', color:'#666'}}>Đơn hàng trên 5 triệu</p></div>
         </div>
         <div className="service-item">
           <span className="service-icon">🎧</span>
