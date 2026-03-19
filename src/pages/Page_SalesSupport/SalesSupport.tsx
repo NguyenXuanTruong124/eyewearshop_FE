@@ -46,7 +46,7 @@ const SalesSupport: React.FC = () => {
       if (tab === 'AVAILABLE') apiType = 'AVAILABLE';
       else if (tab === 'PREORDER') apiType = 'PRE_ORDER';
       else if (tab === 'PRESCRIPTION') apiType = 'PRESCRIPTION';
-      else if (tab === 'PRE_ORDER_PRESCRIPTION') apiType = 'PRE_ORDER_PRESCRIPTION';
+      else if (tab === 'PREORDER_PRESCRIPTION') apiType = 'PRE_ORDER_PRESCRIPTION';
 
       const res = await axiosClient.get(`/orders/all?page=1&pageSize=100&orderType=${apiType}`);
       const data = res.data?.items || [];
