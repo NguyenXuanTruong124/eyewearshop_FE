@@ -127,7 +127,13 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
         });
         triggerToast("Cập nhật tài khoản thành công!");
       } else {
-        await axiosClient.post("/manager/users/staff", {
+        // 🔥 SỬA: Nếu là Customer thì dùng endpoint chung, nếu là Staff/Manager thì dùng /staff
+        let url = "/manager/users/staff";
+        if (Number(formData.roleId) === 1) {
+          url = "/manager/users";
+        }
+
+        await axiosClient.post(url, {
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
@@ -136,7 +142,7 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
           dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : null,
           roleId: Number(formData.roleId)
         });
-        triggerToast("Thêm nhân viên thành công!");
+        triggerToast("Thêm tài khoản thành công!");
       }
       setShowModal(false);
       fetchData();
@@ -301,7 +307,6 @@ const UserManager: React.FC<UserManagerProps> = ({ triggerToast }) => {
                 <div className="form-group">
                   <label>Vai trò</label>
                   <select disabled={isReadOnly} value={formData.roleId} onChange={e => setFormData({ ...formData, roleId: Number(e.target.value) })}>
-                    <option value={1}>Customer</option>
                     <option value={2}>SalesSupport</option>
                     <option value={3}>Operations Staff</option>
                     <option value={4}>Manager</option>

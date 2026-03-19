@@ -99,7 +99,7 @@ export const mapProductToFormData = (prod: any): ProductFormData => ({
   
   rimType: prod.spec?.rimType || prod.spec?.frameSpec?.rimType || "",
   shape: prod.spec?.shape || prod.spec?.frameSpec?.shape || "",
-  frameMaterial: prod.spec?.material || prod.spec?.frameSpec?.material || "",
+  frameMaterial: prod.spec?.material || prod.spec?.frameSpec?.material || prod.spec?.frameMaterial || "",
   weight: prod.spec?.weight || prod.spec?.frameSpec?.weight || 0,
   a: prod.spec?.a || prod.spec?.frameSpec?.a || 0,
   b: prod.spec?.b || prod.spec?.frameSpec?.b || 0,
@@ -110,7 +110,7 @@ export const mapProductToFormData = (prod: any): ProductFormData => ({
   hasNosePads: prod.spec?.hasNosePads ?? prod.spec?.frameSpec?.hasNosePads ?? false,
 
   designType: prod.spec?.designType || prod.spec?.rxLensSpec?.designType || "",
-  rxLensMaterial: prod.spec?.material || prod.spec?.rxLensSpec?.material || "",
+  rxLensMaterial: prod.spec?.material || prod.spec?.rxLensSpec?.material || prod.spec?.rxLensMaterial || "",
   lensWidth: prod.spec?.lensWidth || prod.spec?.rxLensSpec?.lensWidth || 0,
   
   minSphere: prod.spec?.minSphere ?? prod.spec?.rxLensSpec?.minSphere ?? 0,
@@ -139,38 +139,102 @@ export const mapProductToFormData = (prod: any): ProductFormData => ({
 
 export const prepareProductPayload = (p: ProductFormData) => {
   const basePayload = {
-    productName: p.productName, sku: p.sku, description: p.description, basePrice: Number(p.basePrice),
-    categoryId: Number(p.categoryId), brandId: Number(p.brandId), specifications: p.specifications
+    productName: p.productName, 
+    sku: p.sku, 
+    description: p.description, 
+    basePrice: Number(p.basePrice),
+    categoryId: Number(p.categoryId), 
+    brandId: Number(p.brandId), 
+    productType: p.productType, 
+    specifications: p.specifications
   };
 
   if (p.productType === "FRAME") {
-    return { ...basePayload, rimType: p.rimType, material: p.frameMaterial, shape: p.shape, weight: Number(p.weight),
-      a: Number(p.a), b: Number(p.b), dbl: Number(p.dbl), templeLength: Number(p.templeLength),
-      lensWidth: Number(p.frameLensWidth), hingeType: p.hingeType, hasNosePads: p.hasNosePads,
-      frameMaterial: p.frameMaterial, frameLensWidth: Number(p.frameLensWidth) // redundancy for legacy backends
+    return { 
+      ...basePayload, 
+      rimType: p.rimType, 
+      frameMaterial: p.frameMaterial, // Changed from material to frameMaterial
+      shape: p.shape, 
+      weight: Number(p.weight),
+      a: Number(p.a), 
+      b: Number(p.b), 
+      dbl: Number(p.dbl), 
+      templeLength: Number(p.templeLength),
+      frameLensWidth: Number(p.frameLensWidth), 
+      hingeType: p.hingeType, 
+      hasNosePads: p.hasNosePads 
     };
   }
   if (p.productType === "COMBO" || p.productType === "SUNGLASSES") {
-    return { ...basePayload, designType: p.designType, rxLensMaterial: p.rxLensMaterial, lensWidth: Number(p.lensWidth),
-      minSphere: Number(p.minSphere), maxSphere: Number(p.maxSphere), minCylinder: Number(p.minCylinder), maxCylinder: Number(p.maxCylinder),
-      minAxis: Number(p.minAxis), maxAxis: Number(p.maxAxis), minAdd: Number(p.minAdd), maxAdd: Number(p.maxAdd),
-      hasAntiReflective: p.hasAntiReflective, hasBlueLightFilter: p.hasBlueLightFilter, hasUVProtection: p.hasUVProtection, hasScratchResistant: p.hasScratchResistant,
-      rimType: p.rimType, frameMaterial: p.frameMaterial, shape: p.shape, weight: Number(p.weight),
-      a: Number(p.a), b: Number(p.b), dbl: Number(p.dbl), templeLength: Number(p.templeLength),
-      frameLensWidth: Number(p.frameLensWidth), hingeType: p.hingeType, hasNosePads: p.hasNosePads };
+    return { 
+      ...basePayload, 
+      designType: p.designType, 
+      rxLensMaterial: p.rxLensMaterial, 
+      lensWidth: Number(p.lensWidth),
+      minSphere: Number(p.minSphere), 
+      maxSphere: Number(p.maxSphere), 
+      minCylinder: Number(p.minCylinder), 
+      maxCylinder: Number(p.maxCylinder),
+      minAxis: Number(p.minAxis), 
+      maxAxis: Number(p.maxAxis), 
+      minAdd: Number(p.minAdd), 
+      maxAdd: Number(p.maxAdd),
+      hasAntiReflective: p.hasAntiReflective, 
+      hasBlueLightFilter: p.hasBlueLightFilter, 
+      hasUVProtection: p.hasUVProtection, 
+      hasScratchResistant: p.hasScratchResistant,
+      rimType: p.rimType, 
+      frameMaterial: p.frameMaterial, 
+      shape: p.shape, 
+      weight: Number(p.weight),
+      a: Number(p.a), 
+      b: Number(p.b), 
+      dbl: Number(p.dbl), 
+      templeLength: Number(p.templeLength),
+      frameLensWidth: Number(p.frameLensWidth), 
+      hingeType: p.hingeType, 
+      hasNosePads: p.hasNosePads 
+    };
   }
   if (p.productType === "RX_LENS") {
-    return { ...basePayload, designType: p.designType, material: p.rxLensMaterial, rxLensMaterial: p.rxLensMaterial, lensWidth: Number(p.lensWidth),
-      minSphere: Number(p.minSphere), maxSphere: Number(p.maxSphere), minCylinder: Number(p.minCylinder), maxCylinder: Number(p.maxCylinder),
-      minAxis: Number(p.minAxis), maxAxis: Number(p.maxAxis), minAdd: Number(p.minAdd), maxAdd: Number(p.maxAdd),
-      hasAntiReflective: p.hasAntiReflective, hasBlueLightFilter: p.hasBlueLightFilter, hasUVProtection: p.hasUVProtection, hasScratchResistant: p.hasScratchResistant };
+    return { 
+      ...basePayload, 
+      designType: p.designType, 
+      rxLensMaterial: p.rxLensMaterial, // Changed from material to rxLensMaterial
+      lensWidth: Number(p.lensWidth),
+      minSphere: Number(p.minSphere), 
+      maxSphere: Number(p.maxSphere), 
+      minCylinder: Number(p.minCylinder), 
+      maxCylinder: Number(p.maxCylinder),
+      minAxis: Number(p.minAxis), 
+      maxAxis: Number(p.maxAxis), 
+      minAdd: Number(p.minAdd), 
+      maxAdd: Number(p.maxAdd),
+      hasAntiReflective: p.hasAntiReflective, 
+      hasBlueLightFilter: p.hasBlueLightFilter, 
+      hasUVProtection: p.hasUVProtection, 
+      hasScratchResistant: p.hasScratchResistant 
+    };
   }
   if (p.productType === "CONTACT_LENS") {
-    return { ...basePayload, baseCurve: Number(p.baseCurve), diameter: Number(p.diameter), lensType: p.lensType, material: p.rxLensMaterial, rxLensMaterial: p.rxLensMaterial,
-      minSphere: Number(p.minSphere), maxSphere: Number(p.maxSphere), minCylinder: Number(p.minCylinder), maxCylinder: Number(p.maxCylinder),
-      minAxis: Number(p.minAxis), maxAxis: Number(p.maxAxis), waterContent: Number(p.waterContent),
-      oxygenPermeability: Number(p.oxygenPermeability), replacementSchedule: Number(p.replacementSchedule),
-      isToric: p.isToric, isMultifocal: p.isMultifocal };
+    return { 
+      ...basePayload, 
+      baseCurve: Number(p.baseCurve), 
+      diameter: Number(p.diameter), 
+      lensType: p.lensType, 
+      rxLensMaterial: p.rxLensMaterial, // Changed from material to rxLensMaterial
+      minSphere: Number(p.minSphere), 
+      maxSphere: Number(p.maxSphere), 
+      minCylinder: Number(p.minCylinder), 
+      maxCylinder: Number(p.maxCylinder),
+      minAxis: Number(p.minAxis), 
+      maxAxis: Number(p.maxAxis), 
+      waterContent: Number(p.waterContent),
+      oxygenPermeability: Number(p.oxygenPermeability), 
+      replacementSchedule: Number(p.replacementSchedule),
+      isToric: p.isToric, 
+      isMultifocal: p.isMultifocal 
+    };
   }
   return basePayload;
 };

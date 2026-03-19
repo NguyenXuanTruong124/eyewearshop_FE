@@ -82,7 +82,8 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
       } else {
         let url = "/manager/products";
         if (formData.productType === "FRAME") url = "/manager/products/frame";
-        else if (["COMBO", "SUNGLASSES"].includes(formData.productType)) url = "/manager/products/combo";
+        else if (formData.productType === "SUNGLASSES") url = "/manager/products/combo"; // Giữ combo nếu là sunglasses cố định
+        else if (formData.productType === "COMBO") url = "/manager/products/combo";
         else if (formData.productType === "RX_LENS") url = "/manager/products/rxlens";
         else if (formData.productType === "CONTACT_LENS") url = "/manager/products/contactlens";
 
