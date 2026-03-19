@@ -32,9 +32,16 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const updateUserName = () => {
+      const fullName = localStorage.getItem('fullName');
       const email = localStorage.getItem('userEmail');
-      if (email) setUserName(email.split('@')[0]);
-      else setUserName(null);
+      
+      if (fullName) {
+        setUserName(fullName);
+      } else if (email) {
+        setUserName(email.split('@')[0]);
+      } else {
+        setUserName(null);
+      }
     };
 
     updateUserName();

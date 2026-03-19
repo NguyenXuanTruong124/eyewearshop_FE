@@ -41,6 +41,12 @@ const PersonalInfo: React.FC<Props> = ({ triggerToast }) => {
         };
         setUser(data);
         setEditData(data);
+        
+        // Cập nhật localStorage để đồng bộ với Header
+        if (data.fullName) {
+          localStorage.setItem('fullName', data.fullName);
+          window.dispatchEvent(new Event('authChanged'));
+        }
       }
     } catch (error) {
       console.error("Lỗi khi tải thông tin cá nhân:", error);
@@ -65,6 +71,9 @@ const PersonalInfo: React.FC<Props> = ({ triggerToast }) => {
       });
 
       if (response.status === 200) {
+        localStorage.setItem('fullName', editData.fullName);
+        window.dispatchEvent(new Event('authChanged'));
+        
         triggerToast("Cập nhật thông tin cá nhân thành công.");
         setIsEditing(false);
         fetchUserProfile(); // Tải lại dữ liệu mới nhất
