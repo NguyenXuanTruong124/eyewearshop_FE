@@ -91,8 +91,13 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
         triggerToast("Thêm sản phẩm thành công!");
         setShowModal(false);
       }
-      fetchProducts();
-    } catch (err: any) { triggerToast(err.response?.data?.message || "Thao tác thất bại"); }
+      // Đợi load lại danh sách trước khi kết thúc
+      await fetchProducts();
+    } catch (err: any) {
+      console.error("Lỗi khi gửi form sản phẩm:", err);
+      const serverMsg = err.response?.data?.message || err.message;
+      triggerToast(serverMsg || "Thao tác thất bại");
+    }
   };
 
   const handleDeleteProduct = async (productId: number, currentStatus: number) => {

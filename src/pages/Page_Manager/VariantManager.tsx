@@ -356,7 +356,7 @@ const VariantManager: React.FC<VariantManagerProps> = ({
                         const newStaged = [...stagedImages];
                         newStaged[idx].isPrimary = e.target.checked;
                         setStagedImages(newStaged);
-                      }} /> isPrimary
+                      }} /> Chọn làm ảnh chính
                     </label>
                     <button type="button" onClick={() => setStagedImages(stagedImages.filter((_, i) => i !== idx))} className="pm-staged-remove-btn">&times;</button>
                   </div>

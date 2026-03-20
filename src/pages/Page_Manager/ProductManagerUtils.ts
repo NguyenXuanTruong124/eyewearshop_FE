@@ -72,7 +72,7 @@ export const productTypeList = [
   { id: "FRAME", name: "Gọng kính (Frame)" },
   { id: "RX_LENS", name: "Tròng kính (RxLens)" },
   { id: "CONTACT_LENS", name: "Kính áp tròng (Contact Lens)" },
-  { id: "COMBO", name: "Kính mát & Tròng (Combo)" },
+  { id: "COMBO", name: "Combo  (Combo)" },
   { id: "OTHER", name: "Khác (Other)" }
 ];
 
