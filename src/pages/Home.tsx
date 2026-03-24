@@ -57,7 +57,7 @@ const Home: React.FC = () => {
           <div className="service-icon-wrap">🚚</div>
           <div className="service-text">
             <h4>Giao hàng hỏa tốc</h4>
-            <p>Miễn phí cho đơn từ 2tr</p>
+            <p></p>
           </div>
         </div>
         <div className="service-item">

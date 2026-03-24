@@ -3,27 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../API_BE/axiosClient';
 import './styles/Products.css';
 
+const productTypes = [
+  { id: "SUNGLASSES", name: "Kính mát (Sunglasses)" },
+  { id: "FRAME", name: "Gọng kính (Frame)" },
+  { id: "RX_LENS", name: "Tròng kính (RxLens)" },
+  { id: "CONTACT_LENS", name: "Kính áp tròng (Contact Lens)" },
+  { id: "COMBO", name: "Combo (Combo)" }
+];
+
 const Products: React.FC = () => {
   const navigate = useNavigate();
   const [productData, setProductData] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<number | null>(null);
   const [activePriceId, setActivePriceId] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
 
   const fetchProducts = async (
-    categoryId = selectedCategory,
+    productType = selectedProductType,
     brandId = selectedBrand,
     prices = priceRange
   ) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: "1", pageSize: "20" });
-      if (categoryId) params.append("categoryId", categoryId.toString());
+      if (productType) params.append("productType", productType);
       if (brandId) params.append("brandId", brandId.toString());
       if (prices.min !== undefined) params.append("minPrice", prices.min.toString());
       if (prices.max !== undefined) params.append("maxPrice", prices.max.toString());
@@ -40,11 +47,7 @@ const Products: React.FC = () => {
   useEffect(() => {
     const initData = async () => {
       try {
-        const [cateRes, brandRes] = await Promise.all([
-          axiosClient.get('/catalog/categories'),
-          axiosClient.get('/catalog/brands')
-        ]);
-        setCategories(cateRes.data || []);
+        const brandRes = await axiosClient.get('/catalog/brands');
         setBrands(brandRes.data || []);
         fetchProducts();
       } catch (error) {
@@ -58,12 +61,12 @@ const Products: React.FC = () => {
     if (activePriceId === id) {
       setActivePriceId(null);
       setPriceRange({});
-      fetchProducts(selectedCategory, selectedBrand, {});
+      fetchProducts(selectedProductType, selectedBrand, {});
     } else {
       setActivePriceId(id);
       const newPrices = { min, max };
       setPriceRange(newPrices);
-      fetchProducts(selectedCategory, selectedBrand, newPrices);
+      fetchProducts(selectedProductType, selectedBrand, newPrices);
     }
   };
 
@@ -78,18 +81,18 @@ const Products: React.FC = () => {
         <div className="filter-section">
           <h3>Loại sản phẩm</h3>
           <ul className="filter-list">
-            {categories.map((cate: any) => (
-              <li key={cate.categoryId} className="filter-item">
+            {productTypes.map((type) => (
+              <li key={type.id} className="filter-item">
                 <input
                   type="checkbox"
-                  checked={selectedCategory === cate.categoryId}
+                  checked={selectedProductType === type.id}
                   onChange={() => {
-                    const id = selectedCategory === cate.categoryId ? null : cate.categoryId;
-                    setSelectedCategory(id);
+                    const id = selectedProductType === type.id ? null : type.id;
+                    setSelectedProductType(id);
                     fetchProducts(id, selectedBrand);
                   }}
                 />
-                <label>{cate.categoryName}</label>
+                <label>{type.name}</label>
               </li>
             ))}
           </ul>
@@ -107,7 +110,7 @@ const Products: React.FC = () => {
                   onChange={() => {
                     const id = selectedBrand === brand.brandId ? null : brand.brandId;
                     setSelectedBrand(id);
-                    fetchProducts(selectedCategory, id);
+                    fetchProducts(selectedProductType, id);
                   }}
                 />
                 <label>{brand.brandName}</label>
