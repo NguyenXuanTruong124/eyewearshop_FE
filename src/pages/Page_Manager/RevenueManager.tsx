@@ -365,29 +365,92 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
         {/* TOP PRODUCTS TAB */}
         {activeTab === 'TOP_PRODUCTS' && (
           <div className="chart-card full-width">
-            <div className="chart-title">Top sản phẩm mang lại doanh thu cao nhất</div>
-            <div className="top-products-grid-scroll">
-              <table className="rm-data-table">
+            <div className="chart-title-row">
+              <div className="chart-title">Hiệu suất Sản phẩm & Biến thể</div>
+              <div className="top-p-info">Báo cáo top {topLimit} sản phẩm bán chạy tháng {selectedMonth}/{selectedYear}</div>
+            </div>
+            
+            <div className="top-products-table-wrapper">
+              <table className="rm-data-table modern">
                 <thead>
                   <tr>
                     <th>Hạng</th>
-                    <th>ID Biến thể</th>
-                    <th>Số lượng bán</th>
-                    <th>Doanh thu</th>
-                    <th>Giá TB</th>
+                    <th>Thông tin Sản phẩm</th>
+                    <th>Thương hiệu / Loại</th>
+                    <th>Tồn kho</th>
+                    <th>Doanh số</th>
+                    <th>Đơn giá TB</th>
+                    <th>Tổng doanh thu</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topProducts.map((p, idx) => (
                     <tr key={idx}>
-                      <td><span className={`rank-dot r-${idx + 1}`}>{idx + 1}</span></td>
-                      <td style={{ fontWeight: 600 }}>#{p.variantId}</td>
-                      <td>{p.quantitySold}</td>
-                      <td className="text-red">{formatCurrency(p.totalRevenue)}</td>
-                      <td>{formatCurrency(p.avgPrice)}</td>
+                      <td>
+                        <div className={`rank-badge rank-${idx + 1}`}>
+                          {idx + 1}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="product-info-cell">
+                          <img 
+                            src={p.variant.image?.url || 'https://via.placeholder.com/60'} 
+                            alt={p.product.productName} 
+                            className="product-thumb-rm"
+                          />
+                          <div className="product-details-rm">
+                            <span className="p-name-rm">{p.product.productName}</span>
+                            <span className="p-variant-rm">Màu: {p.variant.color} | ID: #{p.variant.variantId}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="tag-group-rm">
+                          <span className="tag-brand-rm">{p.product.brand.brandName}</span>
+                          <span className="tag-cat-rm">{p.product.category.categoryName}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="stock-info-rm">
+                          <div className="stock-row">
+                            <span className="stock-label">Sẵn có:</span>
+                            <span className={`stock-val ${p.variant.stockQuantity < 5 ? 'low' : ''}`}>
+                              {p.variant.stockQuantity}
+                            </span>
+                          </div>
+                          <div className="stock-row">
+                            <span className="stock-label">Đặt trước:</span>
+                            <span className="stock-val blue">{p.variant.preOrderQuantity}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="sold-badge">
+                          {p.quantitySold} <small>đã bán</small>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="price-info-rm">
+                          <span className="price-val">{formatCurrency(p.avgPrice)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="revenue-cell-rm">
+                          <span className="rev-val">{formatCurrency(p.totalRevenue)}</span>
+                        </div>
+                      </td>
                     </tr>
                   ))}
-                  {topProducts.length === 0 && <tr><td colSpan={5} style={{textAlign: 'center', padding: 40}}>Không có dữ liệu</td></tr>}
+                  {topProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '60px 0' }}>
+                        <div className="empty-state">
+                          <ShoppingBag size={48} strokeWidth={1} style={{ opacity: 0.3 }} />
+                          <p>Chưa có dữ liệu giao dịch trong khoảng thời gian này</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

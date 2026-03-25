@@ -269,6 +269,181 @@
 
 .text-red { color: var(--manager-brand); font-weight: 700; }
 
+/* MODERN TABLE & TOP PRODUCTS */
+.chart-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.top-p-info {
+  font-size: 13px;
+  color: var(--manager-text-light);
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-weight: 500;
+}
+
+.top-products-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--manager-border);
+}
+
+.rm-data-table.modern {
+  margin-top: 0;
+}
+
+.rm-data-table.modern th {
+  background: #f8fafc;
+  padding: 18px 15px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--manager-border);
+}
+
+.rm-data-table.modern td {
+  padding: 15px;
+  vertical-align: middle;
+}
+
+.rank-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--manager-text-light);
+  background: #f1f5f9;
+}
+
+.rank-1 { background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); color: #92400e; box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2); }
+.rank-2 { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); color: #334155; }
+.rank-3 { background: linear-gradient(135deg, #ffedd5 0%, #fdba74 100%); color: #9a3412; }
+
+.product-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-thumb-rm {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--manager-border);
+  background: #fff;
+}
+
+.product-details-rm {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.p-name-rm {
+  font-weight: 700;
+  color: var(--manager-text);
+  font-size: 14px;
+  display: block;
+}
+
+.p-variant-rm {
+  font-size: 12px;
+  color: var(--manager-text-light);
+}
+
+.tag-group-rm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tag-brand-rm {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--manager-accent);
+  text-transform: uppercase;
+}
+
+.tag-cat-rm {
+  font-size: 12px;
+  color: var(--manager-text-light);
+}
+
+.stock-info-rm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.stock-label {
+  color: var(--manager-text-light);
+}
+
+.stock-val {
+  font-weight: 700;
+  color: var(--success);
+}
+
+.stock-val.low {
+  color: var(--danger);
+}
+
+.stock-val.blue {
+  color: #3b82f6;
+}
+
+.sold-badge {
+  background: #dcfce7;
+  color: var(--success);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.sold-badge small {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.price-info-rm {
+  font-weight: 600;
+  color: var(--manager-text);
+}
+
+.revenue-cell-rm {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--manager-brand);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  color: var(--manager-text-light);
+}
+
 /* SPINNER & LOADING */
 .rm-content-body { position: relative; min-height: 400px; }
 
