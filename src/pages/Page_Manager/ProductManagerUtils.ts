@@ -93,7 +93,7 @@ export const mapProductToFormData = (prod: any): ProductFormData => ({
   status: prod.status !== undefined ? prod.status : 1,
   sku: prod.sku || "",
   productType: prod.productType || "FRAME",
-  categoryId: prod.category?.categoryId || prod.categoryId || 1,
+  categoryId: 1, // Fixed to 1 as requested (ignore backend unstable category)
   brandId: prod.brand?.brandId || prod.brandId || 1,
   specifications: prod.specifications || "",
   
@@ -143,7 +143,7 @@ export const prepareProductPayload = (p: ProductFormData) => {
     sku: p.sku, 
     description: p.description, 
     basePrice: Number(p.basePrice),
-    categoryId: Number(p.categoryId), 
+    categoryId: 1, // Hardcoded to 1
     brandId: Number(p.brandId), 
     productType: p.productType, 
     specifications: p.specifications

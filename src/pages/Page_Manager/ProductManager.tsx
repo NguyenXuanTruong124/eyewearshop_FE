@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axiosClient from "../../API_BE/axiosClient";
 import "./ProductManager.css";
 import { 
-  categoryList, brandList, productTypeList, getDefaultFormData, 
+  brandList, productTypeList, getDefaultFormData, 
   ProductFormData, mapProductToFormData, prepareProductPayload 
 } from "./ProductManagerUtils";
 import ProductSpecs from "./ProductSpecs";
@@ -191,9 +191,8 @@ const ProductManager: React.FC<ProductManagerProps> = ({ triggerToast }) => {
                       <div className="pm-form-group"><label>Mã SKU gốc *</label><input required disabled={isReadOnly} value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} /></div>
                       <div className="pm-form-group"><label>Giá sàn (VNĐ) *</label><input type="number" required disabled={isReadOnly} value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: Number(e.target.value) })} /></div>
                       <div className="pm-form-group"><label>Thương hiệu *</label><select disabled={isReadOnly} value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: Number(e.target.value) })}>{brandList.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
-                      <div className="pm-form-group"><label>Danh mục *</label><select disabled={isReadOnly} value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: Number(e.target.value) })}>{categoryList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                      {editingProduct && <div className="pm-form-group"><label>Loại</label><select disabled value={formData.productType}>{productTypeList.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}</select></div>}
                       <div className="pm-form-group"><label>Trạng thái</label><select disabled={isReadOnly} value={formData.status} onChange={e => setFormData({ ...formData, status: Number(e.target.value) })}><option value={1}>Đang bán</option><option value={0}>Ngừng kinh doanh</option></select></div>
+                      {editingProduct && <div className="pm-form-group"><label>Loại</label><select disabled value={formData.productType}>{productTypeList.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}</select></div>}
                       <div className="pm-form-group pm-col-span-3"><label>Đặc tả ngắn</label><input disabled={isReadOnly} value={formData.specifications} onChange={e => setFormData({ ...formData, specifications: e.target.value })} /></div>
                       <div className="pm-form-group pm-col-span-3"><label>Mô tả chi tiết</label><textarea rows={3} disabled={isReadOnly} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
                     </div>

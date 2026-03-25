@@ -407,7 +407,6 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
                       <td>
                         <div className="tag-group-rm">
                           <span className="tag-brand-rm">{p.product.brand.brandName}</span>
-                          <span className="tag-cat-rm">{p.product.category.categoryName}</span>
                         </div>
                       </td>
                       <td>
