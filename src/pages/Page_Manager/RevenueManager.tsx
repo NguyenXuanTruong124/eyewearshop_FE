@@ -130,7 +130,7 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
   const dailyChartData = useMemo(() => {
     return dailyData.map(item => ({
       name: new Date(item.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
-      revenue: item.totalRevenue,
+      revenue: item.netRevenue,
       orders: item.totalOrders,
       returns: item.returnedOrders
     }));
@@ -140,6 +140,7 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
     return yearlyData.map(item => ({
       name: item.year.toString(),
       revenue: item.totalRevenue,
+      netRevenue: item.netRevenue,
       orders: item.totalOrders
     }));
   }, [yearlyData]);
@@ -247,10 +248,15 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
                 <span className="stat-label">Tổng đơn hàng</span>
                 <span className="stat-value">{summaryData.totalOrders}</span>
               </div>
-              <div className="stat-card-rm returns">
+              <div className="stat-card-rm refund">
                 <div className="stat-icon"><RotateCcw size={24} /></div>
+                <span className="stat-label">Tổng tiền hoàn trả</span>
+                <span className="stat-value">{formatCurrency(summaryData.returnedRevenue)}</span>
+              </div>
+              <div className="stat-card-rm returns">
+                <div className="stat-icon"><RefreshCw size={24} /></div>
                 <span className="stat-label">Tỉ lệ hoàn đơn</span>
-                <span className="stat-value">{summaryData.returnRate}%</span>
+                <span className="stat-value">{Number(summaryData.returnRate).toFixed(1).replace('.', ',')}%</span>
               </div>
               <div className="stat-card-rm avg">
                 <div className="stat-icon"><DollarSign size={24} /></div>
@@ -306,60 +312,176 @@ const RevenueManager: React.FC<RevenueManagerProps> = () => {
 
         {/* DAILY TAB */}
         {activeTab === 'DAILY' && (
-          <div className="chart-card full-width">
-            <div className="chart-title">Doanh thu chi tiết theo ngày</div>
-            <div style={{ height: 400, marginTop: 20 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dailyChartData}>
-                  <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#e31837" stopOpacity={0.1}/><stop offset="95%" stopColor="#e31837" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
-                  <Tooltip formatter={(val: any) => formatCurrency(val)} />
-                  <Area type="monotone" dataKey="revenue" stroke="#e31837" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                </AreaChart>
-              </ResponsiveContainer>
+          <>
+            <div className="chart-card full-width">
+              <div className="chart-title">Doanh thu thuần chi tiết theo ngày</div>
+              <div style={{ height: 400, marginTop: 20 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={dailyChartData}>
+                    <defs>
+                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
+                    <Tooltip formatter={(val: any) => formatCurrency(val)} />
+                    <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+
+            <div className="chart-card full-width" style={{ marginTop: 25 }}>
+              <div className="chart-title">Bảng kê chi tiết theo ngày</div>
+              <div className="top-products-table-wrapper">
+                <table className="rm-data-table modern">
+                  <thead>
+                    <tr>
+                      <th>Ngày</th>
+                      <th>Tổng doanh thu</th>
+                      <th>Tổng đơn</th>
+                      <th>Đơn hoàn</th>
+                      <th>SP hoàn</th>
+                      <th>Tiền hoàn</th>
+                      <th>Doanh thu thuần</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyData.map((d, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600 }}>{new Date(d.date).toLocaleDateString('vi-VN')}</td>
+                        <td>{formatCurrency(d.totalRevenue)}</td>
+                        <td>{d.totalOrders}</td>
+                        <td style={{ color: d.returnedOrders > 0 ? '#ef4444' : 'inherit' }}>{d.returnedOrders}</td>
+                        <td>{d.returnedItems}</td>
+                        <td style={{ color: d.totalReturnedRevenue > 0 ? '#ef4444' : 'inherit' }}>{formatCurrency(d.totalReturnedRevenue)}</td>
+                        <td style={{ fontWeight: 700, color: '#10b981' }}>{formatCurrency(d.netRevenue)}</td>
+                      </tr>
+                    ))}
+                    {dailyData.length === 0 && (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Không có dữ liệu chi tiết</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
 
         {/* MONTHLY TAB */}
         {activeTab === 'MONTHLY' && (
-          <div className="chart-card full-width">
-            <div className="chart-title">Thống kê doanh thu Tháng {selectedMonth}/{selectedYear}</div>
-            <div className="monthly-stats-row">
-              {monthlyData.map((m, i) => (
-                <div key={i} className="m-stat-item">
-                  <div className="m-label">Doanh thu</div>
-                  <div className="m-val">{formatCurrency(m.totalRevenue)}</div>
-                  <div className="m-label mt-10">Đơn hàng</div>
-                  <div className="m-val small">{m.totalOrders} đơn</div>
-                </div>
-              ))}
+          <>
+            <div className="chart-card full-width">
+              <div className="chart-title">So sánh doanh thu Tháng {selectedMonth}/{selectedYear}</div>
+              <div style={{ height: 350, marginTop: 20 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyData.map(m => ({
+                    name: m.month,
+                    'Tổng doanh thu': m.totalRevenue,
+                    'Doanh thu thuần': m.netRevenue
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
+                    <Tooltip formatter={(val: any) => formatCurrency(val)} cursor={{fill: '#f8fafc'}} />
+                    <Legend />
+                    <Bar dataKey="Tổng doanh thu" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={50} />
+                    <Bar dataKey="Doanh thu thuần" fill="#10b981" radius={[4, 4, 0, 0]} barSize={50} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+
+            <div className="chart-card full-width" style={{ marginTop: 25 }}>
+              <div className="chart-title">Bảng kê chi tiết tháng</div>
+              <div className="top-products-table-wrapper">
+                <table className="rm-data-table modern">
+                  <thead>
+                    <tr>
+                      <th>Tháng</th>
+                      <th>Tổng doanh thu</th>
+                      <th>Tổng đơn</th>
+                      <th>Đơn hoàn</th>
+                      <th>SP hoàn</th>
+                      <th>Tiền hoàn</th>
+                      <th>Doanh thu thuần</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyData.map((m, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600 }}>{m.month}</td>
+                        <td>{formatCurrency(m.totalRevenue)}</td>
+                        <td>{m.totalOrders}</td>
+                        <td style={{ color: m.returnedOrders > 0 ? '#ef4444' : 'inherit' }}>{m.returnedOrders}</td>
+                        <td>{m.returnedItems}</td>
+                        <td style={{ color: m.totalReturnedRevenue > 0 ? '#ef4444' : 'inherit' }}>{formatCurrency(m.totalReturnedRevenue)}</td>
+                        <td style={{ fontWeight: 700, color: '#10b981' }}>{formatCurrency(m.netRevenue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
 
         {/* YEARLY TAB */}
         {activeTab === 'YEARLY' && (
-          <div className="chart-card full-width">
-            <div className="chart-title">Tăng trưởng doanh thu {startYear} - {endYear}</div>
-            <div style={{ height: 400, marginTop: 20 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearlyChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
-                  <Tooltip formatter={(val: any) => formatCurrency(val)} cursor={{fill: '#f8fafc'}} />
-                  <Bar dataKey="revenue" fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={60} />
-                </BarChart>
-              </ResponsiveContainer>
+          <>
+            <div className="chart-card full-width">
+              <div className="chart-title">Phân tích tăng trưởng {startYear} - {endYear}</div>
+              <div style={{ height: 400, marginTop: 20 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={yearlyChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
+                    <Tooltip formatter={(val: any) => formatCurrency(val)} cursor={{fill: '#f8fafc'}} />
+                    <Legend />
+                    <Bar dataKey="revenue" name="Tổng doanh thu" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={40} />
+                    <Bar dataKey="netRevenue" name="Doanh thu thuần" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+
+            <div className="chart-card full-width" style={{ marginTop: 25 }}>
+              <div className="chart-title">Bảng kê chi tiết theo năm</div>
+              <div className="top-products-table-wrapper">
+                <table className="rm-data-table modern">
+                  <thead>
+                    <tr>
+                      <th>Năm</th>
+                      <th>Tổng doanh thu</th>
+                      <th>Tổng đơn</th>
+                      <th>Đơn hoàn</th>
+                      <th>SP hoàn</th>
+                      <th>Tiền hoàn</th>
+                      <th>Doanh thu thuần</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {yearlyData.map((y, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600 }}>Năm {y.year}</td>
+                        <td>{formatCurrency(y.totalRevenue)}</td>
+                        <td>{y.totalOrders}</td>
+                        <td style={{ color: y.returnedOrders > 0 ? '#ef4444' : 'inherit' }}>{y.returnedOrders}</td>
+                        <td>{y.returnedItems}</td>
+                        <td style={{ color: y.totalReturnedRevenue > 0 ? '#ef4444' : 'inherit' }}>{formatCurrency(y.totalReturnedRevenue)}</td>
+                        <td style={{ fontWeight: 700, color: '#10b981' }}>{formatCurrency(y.netRevenue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
 
         {/* TOP PRODUCTS TAB */}

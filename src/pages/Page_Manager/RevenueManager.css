@@ -180,6 +180,7 @@
 
 .stat-card-rm.revenue .stat-icon { background: #fee2e2; color: #ef4444; }
 .stat-card-rm.orders .stat-icon { background: #e0e7ff; color: #4f46e5; }
+.stat-card-rm.refund .stat-icon { background: #ffedd5; color: #f97316; }
 .stat-card-rm.returns .stat-icon { background: #fef3c7; color: #d97706; }
 .stat-card-rm.avg .stat-icon { background: #dcfce7; color: #10b981; }
 
