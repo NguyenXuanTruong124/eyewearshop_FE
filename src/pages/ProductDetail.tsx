@@ -142,7 +142,7 @@ const ProductDetail: React.FC = () => {
                   className={`variant-chip ${selectedVariant?.variantId === v.variantId ? 'active' : ''}`}
                   onClick={() => { setSelectedVariant(v); setQuantity(1); }}
                 >
-                  {v.color} {v.refractiveIndex ? `- Chiết suất ${v.refractiveIndex}` : ''}
+                  {v.color} {v.refractiveIndex && !['FRAME', 'SUNGLASSES'].includes(product.productType) ? `- Chiết suất ${v.refractiveIndex}` : ''}
                 </button>
               ))}
             </div>
