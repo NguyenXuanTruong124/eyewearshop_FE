@@ -430,7 +430,15 @@ const Checkout: React.FC = () => {
                         <span className="alert-icon">❌</span>
                         <strong>Thông số mắt không phù hợp với tròng kính</strong>
                       </div>
-                      <p className="alert-message">{prescriptionCompatibility.issues?.join('. ') || 'Độ cận/loạn của bạn vượt quá khả năng xử lý của tròng kính này.'}</p>
+                      <div className="alert-message-list">
+                        {prescriptionCompatibility.issues && prescriptionCompatibility.issues.length > 0 ? (
+                          prescriptionCompatibility.issues.map((issue: string, idx: number) => (
+                            <div key={idx} className="alert-issue">• {issue}</div>
+                          ))
+                        ) : (
+                          <div className="alert-issue">• Độ cận/loạn của bạn vượt quá khả năng xử lý của tròng kính này.</div>
+                        )}
+                      </div>
                       <ul className="alert-suggestions">
                         <li>Vui lòng kiểm tra lại thông số mắt bạn đã nhập.</li>
                         <li>Hoặc quay lại giỏ hàng để chọn loại tròng kính có dải đo phù hợp hơn.</li>

@@ -279,16 +279,20 @@
 
 .warning-content h4 {
   color: #991b1b;
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   font-size: 18px;
   font-weight: 800;
 }
 
-.warning-content p {
+.warning-list-new {
+  margin-bottom: 12px;
+}
+
+.warning-issue {
   color: #b91c1c;
   font-size: 14px;
   line-height: 1.6;
-  margin: 0 0 12px 0;
+  margin-bottom: 4px;
 }
 
 .warning-hint {
