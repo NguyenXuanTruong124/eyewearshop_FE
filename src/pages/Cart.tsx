@@ -130,7 +130,15 @@ const Cart: React.FC = () => {
             <div className="warning-icon">⚠️</div>
             <div className="warning-content">
               <h4>Phát hiện sự không tương thích</h4>
-              <p>{compatibility.issues?.join('. ') || 'Sản phẩm gọng và tròng không phù hợp kỹ thuật.'}</p>
+              <div className="warning-list-new">
+                {compatibility.issues && compatibility.issues.length > 0 ? (
+                  compatibility.issues.map((issue: string, idx: number) => (
+                    <div key={idx} className="warning-issue">• {issue}</div>
+                  ))
+                ) : (
+                  <div className="warning-issue">• Sản phẩm gọng và tròng không phù hợp kỹ thuật.</div>
+                )}
+              </div>
               <span className="warning-hint">* Vui lòng chọn gọng và tròng kính phù hợp để đảm bảo chất lượng gia công tốt nhất.</span>
             </div>
           </div>
