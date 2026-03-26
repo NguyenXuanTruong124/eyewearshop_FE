@@ -102,7 +102,7 @@ const Header: React.FC = () => {
         </nav>
 
         <div className="header-icons">
-          <button className="icon-btn">🔍</button>
+          <button className="icon-btn"></button>
 
           {userName ? (
             <div className="user-profile-section">

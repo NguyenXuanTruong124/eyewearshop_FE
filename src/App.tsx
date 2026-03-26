@@ -130,6 +130,9 @@ function App() {
       {/* Toaster global */}
       <Toaster
         position="top-right"
+        containerStyle={{
+          top: 80,
+        }}
         reverseOrder={false}
         toastOptions={{
           duration: 3000,
