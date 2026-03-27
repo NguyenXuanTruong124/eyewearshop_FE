@@ -245,6 +245,10 @@
   border-left-color: #f44336;
 }
 
+.status-border-9 {
+  border-left-color: #d32f2f;
+}
+
 .status-border-7 {
   border-left-color: #2e7d32;
 }
@@ -312,6 +316,13 @@
   background: #ffebee;
   color: #f44336;
   border-color: #ffcdd2;
+}
+
+.status-tag-mini.s-9 {
+  background: #ffebee;
+  color: #d32f2f;
+  border-color: #ffcdd2;
+  font-weight: 800;
 }
 
 .status-tag-mini.s-7 {
@@ -676,4 +687,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Status Text helpers for modal subtitle */
+.status-text-9, .status-text-6 {
+  color: #ffcdd2;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-left: 5px;
 }

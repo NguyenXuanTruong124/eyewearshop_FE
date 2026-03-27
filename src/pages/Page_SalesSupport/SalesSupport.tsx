@@ -129,6 +129,7 @@ const SalesSupport: React.FC = () => {
       4: { text: 'Đang giao hàng', class: 'shipped' },
       5: { text: 'Đã giao', class: 'delivered' },
       6: { text: 'Đã hủy', class: 'cancelled' },
+      9: { text: 'Đã xóa', class: 'Deleted' },
       7: { text: 'Hoàn tất', class: 'completed' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
@@ -296,7 +297,7 @@ const SalesSupport: React.FC = () => {
             <div className="modal-header-red">
               <div>
                 <h3 style={{ margin: 0 }}>Đơn hàng: #{selectedOrder.orderNumber}</h3>
-                <span className="modal-subtitle">Loại: {selectedOrder.orderType} | Trạng thái: {getStatusInfo(selectedOrder.status).text}</span>
+                <span className="modal-subtitle">Loại: {selectedOrder.orderType} | Trạng thái: <span className={`status-text-${selectedOrder.status}`}>{getStatusInfo(selectedOrder.status).text}</span></span>
               </div>
               <button className="btn-close-modal" onClick={() => setShowModal(false)}>&times;</button>
             </div>
