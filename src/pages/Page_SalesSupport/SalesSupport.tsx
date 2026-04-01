@@ -19,8 +19,21 @@ const SalesSupport: React.FC = () => {
   const fetchReturns = async (tab: string) => {
     try {
       setLoading(true);
-      const res = await axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=${tab === 'PENDING' ? 0 : 3}`);
-      setReturnRequests(res.data?.items || []);
+      let res;
+      if (tab === 'PENDING') {
+        res = await axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=0`);
+        setReturnRequests(res.data?.items || []);
+      } else {
+        // Fetch status 2 (Rejected) and 3 (Completed)
+        const [res3, res2] = await Promise.all([
+          axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=3`),
+          axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=2`)
+        ]);
+        const combined = [...(res3.data?.items || []), ...(res2.data?.items || [])];
+        // Sort by date descending
+        combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setReturnRequests(combined);
+      }
     } catch (e) {
       setReturnRequests([]);
       toast.error("Không thể tải danh sách khiếu nại");
@@ -129,7 +142,7 @@ const SalesSupport: React.FC = () => {
       4: { text: 'Đang giao hàng', class: 'shipped' },
       5: { text: 'Đã giao', class: 'delivered' },
       6: { text: 'Đã hủy', class: 'cancelled' },
-      9: { text: 'Đã xóa', class: 'Deleted' },
+      9: { text: 'Đã xóa', class: 'deleted' },
       7: { text: 'Hoàn tất', class: 'completed' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
@@ -189,7 +202,9 @@ const SalesSupport: React.FC = () => {
                   const statusInfo = getStatusInfo(order.status);
                   const isPreorderType = activeTab.includes('PREORDER');
                   const allInStock = order.items?.every((item: any) => item.inStock === true);
-                  const canProceed = isPreorderType ? allInStock : true;
+                  // Chỉ khóa nút khi chuyển từ 0 sang 1 và không đủ hàng (nếu là preorder)
+                  const canProceedToStatus1 = isPreorderType ? allInStock : true;
+                  const canProceedToStatus2 = true; // Chuyển từ 1 sang 2 không khóa nữa
 
                   return (
                     <div key={order.orderId} className={`staff-order-card status-border-${order.status}`}>
@@ -215,26 +230,26 @@ const SalesSupport: React.FC = () => {
                         <div className="group-btns">
                           {order.status === 0 && (
                             <button
-                              onClick={() => canProceed && handleUpdateStatus(order.orderId, 1)}
-                              className={`btn-action-next ${!canProceed ? 'btn-disabled' : ''}`}
-                              disabled={!canProceed}
-                              title={!canProceed ? "Chưa có đủ hàng, không thể xác nhận" : "Xác nhận đơn hàng"}
+                              onClick={() => canProceedToStatus1 && handleUpdateStatus(order.orderId, 1)}
+                              className={`btn-action-next ${!canProceedToStatus1 ? 'btn-disabled' : ''}`}
+                              disabled={!canProceedToStatus1}
+                              title={!canProceedToStatus1 ? "Chưa có đủ hàng, không thể xác nhận" : "Xác nhận đơn hàng"}
                             >
                               Xác nhận
                             </button>
                           )}
                           {order.status === 1 && (
                             <button
-                              onClick={() => canProceed && handleUpdateStatus(order.orderId, 2)}
-                              className={`btn-action-ops ${!canProceed ? 'btn-disabled' : ''}`}
-                              disabled={!canProceed}
-                              title={!canProceed ? "Chưa có đủ hàng" : "Chuyển xử lý OPS"}
+                              onClick={() => canProceedToStatus2 && handleUpdateStatus(order.orderId, 2)}
+                              className={`btn-action-ops ${!canProceedToStatus2 ? 'btn-disabled' : ''}`}
+                              disabled={!canProceedToStatus2}
+                              title={!canProceedToStatus2 ? "Chưa có đủ hàng" : "Chuyển xử lý OPS"}
                             >
                               Chuyển OPS
                             </button>
                           )}
 
-                          {order.status < 6 && (
+                          {order.status !== 6 && order.status !== 9 && (
                             <button onClick={() => handleUpdateStatus(order.orderId, 6)} className="btn-action-cancel-text">Hủy đơn</button>
                           )}
                         </div>
@@ -254,35 +269,40 @@ const SalesSupport: React.FC = () => {
                 Đơn Khiếu Nại Mới
               </button>
               <button className={`staff-tab-btn ${returnTab === 'COMPLETED' ? 'active' : ''}`} onClick={() => setReturnTab('COMPLETED')}>
-                Khiếu Nại Hoàn Tất
+                Tổng hợp đơn Khiếu nại
               </button>
             </div>
             <div className="order-cards-grid">
               {returnRequests.length > 0 ? (
-                returnRequests.map(req => (
-                  <div key={req.returnRequestId} className={`staff-order-card status-border-0`}>
-                    <div className="card-header-top">
-                      <span className="order-number">Mã KN: #{req.returnRequestId}</span>
-                      <span className={`status-tag-mini s-0`}>{req.status === 0 ? 'Mới' : 'Hoàn tất'}</span>
-                    </div>
-                    <div className="card-body-info">
-                      <p><strong>🛍️ Mã Đơn:</strong> #{req.order?.orderNumber}</p>
-                      <p><strong>Loại:</strong> <span style={{ fontWeight: 'bold', color: '#e31837' }}>{req.requestType}</span></p>
-                      <p><strong>Lý do:</strong> {req.reason}</p>
-                      <p><strong>Ngày tạo:</strong> {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
-                    </div>
-                    <div className="card-footer-actions">
-                      <div className="group-btns" style={{ width: '100%', justifyContent: 'space-between' }}>
-                        {req.status === 0 && (
-                          <>
-                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 1)} className="btn-action-next">Duyệt (Chuyển OPS)</button>
-                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 2)} className="btn-action-cancel-text">Từ chối</button>
-                          </>
-                        )}
+                returnRequests.map(req => {
+                  const colorClass = req.status === 3 ? '7' : req.status === 2 ? '6' : req.status === 1 ? '1' : '0';
+                  const statusText = req.status === 3 ? 'Hoàn tất' : req.status === 2 ? 'Đã từ chối' : req.status === 1 ? 'Chờ OPS' : 'Mới';
+
+                  return (
+                    <div key={req.returnRequestId} className={`staff-order-card status-border-${colorClass}`}>
+                      <div className="card-header-top">
+                        <span className="order-number">Mã KN: #{req.returnRequestId}</span>
+                        <span className={`status-tag-mini s-${colorClass}`}>{statusText}</span>
+                      </div>
+                      <div className="card-body-info">
+                        <p><strong>🛍️ Mã Đơn:</strong> #{req.order?.orderNumber}</p>
+                        <p><strong>Loại:</strong> <span style={{ fontWeight: 'bold', color: '#e31837' }}>{req.requestType}</span></p>
+                        <p><strong>Lý do:</strong> {req.reason}</p>
+                        <p><strong>Ngày tạo:</strong> {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
+                      </div>
+                      <div className="card-footer-actions">
+                        <div className="group-btns" style={{ width: '100%', justifyContent: 'space-between' }}>
+                          {req.status === 0 && (
+                            <>
+                              <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 1)} className="btn-action-next">Duyệt (Chuyển OPS)</button>
+                              <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 2)} className="btn-action-cancel-text">Từ chối</button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="empty-state-card">Không có yêu cầu khiếu nại nào.</div>
               )}

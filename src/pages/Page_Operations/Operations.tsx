@@ -15,6 +15,7 @@ const Operations: React.FC = () => {
 
   const [mode, setMode] = useState<'ORDERS' | 'RETURNS'>('ORDERS');
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
+  const [returnTab, setReturnTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
 
   // Custom Confirm Modal State
   const [confirmConfig, setConfirmConfig] = useState<{
@@ -25,12 +26,22 @@ const Operations: React.FC = () => {
     setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
   };
 
-  const fetchReturns = async () => {
+  const fetchReturns = async (tab: string) => {
     try {
       setLoading(true);
-      // Operations: Lấy yêu cầu đang ở trạng thái 1 (Approved by Sales)
-      const res = await axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=1`);
-      setReturnRequests(res.data?.items || []);
+      if (tab === 'PENDING') {
+        const res = await axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=1`);
+        setReturnRequests(res.data?.items || []);
+      } else {
+        // Fetch status 2 (Rejected) and 3 (Completed)
+        const [res3, res2] = await Promise.all([
+          axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=3`),
+          axiosClient.get(`/return-requests/all?page=1&pageSize=100&status=2`)
+        ]);
+        const combined = [...(res3.data?.items || []), ...(res2.data?.items || [])];
+        combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setReturnRequests(combined);
+      }
     } catch (e) {
       setReturnRequests([]);
       toast.error("Không thể tải danh sách khiếu nại");
@@ -43,7 +54,7 @@ const Operations: React.FC = () => {
     try {
       await axiosClient.put(`/return-requests/${id}/status`, status, { headers: { 'Content-Type': 'application/json' } });
       toast.success("Cập nhật khiếu nại thành công!");
-      fetchReturns();
+      fetchReturns(returnTab);
     } catch(e) {
       toast.error("Lỗi cập nhật khiếu nại");
     }
@@ -79,9 +90,9 @@ const Operations: React.FC = () => {
     if (mode === 'ORDERS') {
       fetchOrders(activeTab);
     } else {
-      fetchReturns();
+      fetchReturns(returnTab);
     }
-  }, [mode, activeTab]);
+  }, [mode, activeTab, returnTab]);
 
   const handleViewDetail = async (orderId: number) => {
     try {
@@ -274,39 +285,47 @@ const Operations: React.FC = () => {
         ) : (
           <>
             <div className="staff-tabs-container">
-              <button className="staff-tab-btn active">
+              <button className={`staff-tab-btn ${returnTab === 'PENDING' ? 'active' : ''}`} onClick={() => setReturnTab('PENDING')}>
                 Yêu cầu chờ xử lý
+              </button>
+              <button className={`staff-tab-btn ${returnTab === 'COMPLETED' ? 'active' : ''}`} onClick={() => setReturnTab('COMPLETED')}>
+                Tổng hợp đơn Khiếu nại
               </button>
             </div>
             <div className="order-cards-grid">
               {returnRequests.length > 0 ? (
-                returnRequests.map(req => (
-                  <div key={req.returnRequestId} className={`staff-order-card status-border-1`}>
-                    <div className="card-header-top">
-                      <span className="order-number">Mã KN: #{req.returnRequestId}</span>
-                      <span className={`status-tag-mini s-1`}>Đã Duyệt (Chờ OPS)</span>
-                    </div>
-                    <div className="card-body-info">
-                      <p><strong>🛍️ Mã Đơn:</strong> #{req.order?.orderNumber}</p>
-                      <p><strong>Loại:</strong> <span style={{fontWeight: 'bold', color: '#e31837'}}>{req.requestType}</span></p>
-                      <p><strong>Lý do:</strong> {req.reason}</p>
-                      <p><strong>Chi tiết:</strong> {req.description}</p>
-                      <p><strong>Ngày tạo:</strong> {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
-                    </div>
-                    <div className="card-footer-actions">
-                      <div className="group-btns" style={{ width: '100%', justifyContent: 'space-between' }}>
-                        {req.status === 1 && (
-                          <>
-                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 3)} className="btn-action-next">Đã xử lý xong (Hoàn tất)</button>
-                            <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 2)} className="btn-action-cancel-text">Từ chối (Hủy KN)</button>
-                          </>
-                        )}
+                returnRequests.map(req => {
+                  const colorClass = req.status === 3 ? '7' : req.status === 2 ? '6' : req.status === 1 ? '1' : '0';
+                  const statusText = req.status === 3 ? 'Hoàn tất' : req.status === 2 ? 'Đã từ chối' : req.status === 1 ? 'Chờ OPS' : 'Mới';
+
+                  return (
+                    <div key={req.returnRequestId} className={`staff-order-card status-border-${colorClass}`}>
+                      <div className="card-header-top">
+                        <span className="order-number">Mã KN: #{req.returnRequestId}</span>
+                        <span className={`status-tag-mini s-${colorClass}`}>{statusText}</span>
+                      </div>
+                      <div className="card-body-info">
+                        <p><strong>🛍️ Mã Đơn:</strong> #{req.order?.orderNumber}</p>
+                        <p><strong>Loại:</strong> <span style={{fontWeight: 'bold', color: '#e31837'}}>{req.requestType}</span></p>
+                        <p><strong>Lý do:</strong> {req.reason}</p>
+                        <p><strong>Chi tiết:</strong> {req.description}</p>
+                        <p><strong>Ngày tạo:</strong> {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
+                      </div>
+                      <div className="card-footer-actions">
+                        <div className="group-btns" style={{ width: '100%', justifyContent: 'space-between' }}>
+                          {req.status === 1 && (
+                            <>
+                              <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 3)} className="btn-action-next">Đã xử lý xong (Hoàn tất)</button>
+                              <button onClick={() => handleUpdateReturnStatus(req.returnRequestId, 2)} className="btn-action-cancel-text">Từ chối (Hủy KN)</button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="empty-state-card">Không có yêu cầu khiếu nại nào đang chờ.</div>
+                <div className="empty-state-card">Không có yêu cầu khiếu nại nào.</div>
               )}
             </div>
           </>
