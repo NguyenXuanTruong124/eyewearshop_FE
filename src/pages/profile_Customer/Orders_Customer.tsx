@@ -85,7 +85,7 @@ const Orders_Customer: React.FC = () => {
       8: { text: 'Chờ thanh toán', class: 'awaiting-payment' },
       9: { text: 'Đã xóa', class: 'deleted' },
       11: { text: 'Đang xét duyệt khiếu nại', class: 'return-requested' },
-      12: { text: 'Đang xử lý khiếu nại', class: 'return-approved' },
+      12: { text: 'Đơn khiếu nại đã được duyệt', class: 'return-approved' },
       13: { text: 'Từ chối khiếu nại', class: 'return-rejected' }
     };
     return config[status] || { text: 'N/A', class: 'na' };
